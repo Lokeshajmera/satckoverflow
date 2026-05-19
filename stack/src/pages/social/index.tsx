@@ -13,6 +13,9 @@ import {
   Image as ImageIcon,
   Users,
   Send,
+  Upload,
+  X,
+  Film,
 } from "lucide-react";
 
 type Comment = {
@@ -45,20 +48,29 @@ type Post = {
 export default function SocialFeed() {
   const { user } = useAuth();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState("");
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"image" | "video" | "none">("none");
+  const [uploading, setUploading] = useState(false);
   const [posting, setPosting] = useState(false);
   const [friendCount, setFriendCount] = useState(0);
   const [openComments, setOpenComments] = useState<string | null>(null);
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     fetchPosts();
-    if (user) fetchFriendCount();
-  }, [user]);
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted && user) fetchFriendCount();
+  }, [hasMounted, user]);
 
   const fetchPosts = async () => {
     try {
@@ -84,32 +96,80 @@ export default function SocialFeed() {
     return Infinity;
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+
+    if (!isVideo && !isImage) {
+      toast.error("Only image and video files are supported");
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File must be under 50MB");
+      return;
+    }
+
+    setSelectedFile(file);
+    setMediaType(isVideo ? "video" : "image");
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setMediaType("none");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handlePost = async () => {
     if (!user) {
       toast.error("Please login to post");
       return router.push("/auth");
     }
-    if (!content.trim() && !mediaUrl.trim()) {
-      return toast.error("Write something or add a media URL");
+    if (!content.trim() && !selectedFile) {
+      return toast.error("Write something or upload a photo/video");
     }
+
     setPosting(true);
+    let uploadedUrl = "";
+    let finalMediaType: "image" | "video" | "none" = "none";
+
     try {
+      // Step 1: Upload media to Cloudinary if a file was selected
+      if (selectedFile) {
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const uploadRes = await axiosInstance.post("/social/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        uploadedUrl = uploadRes.data.url;
+        finalMediaType = uploadRes.data.mediaType;
+        setUploading(false);
+      }
+
+      // Step 2: Create post with the uploaded URL
       const res = await axiosInstance.post("/social/create", {
         userid: user._id,
         username: user.name,
         content,
-        mediaUrl: mediaUrl.trim(),
-        mediaType: mediaUrl ? mediaType : "none",
+        mediaUrl: uploadedUrl,
+        mediaType: finalMediaType,
       });
+
       setPosts([res.data.data, ...posts]);
       setContent("");
-      setMediaUrl("");
-      setMediaType("none");
+      removeSelectedFile();
       toast.success("Post published!");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to post");
     } finally {
       setPosting(false);
+      setUploading(false);
     }
   };
 
@@ -179,6 +239,7 @@ export default function SocialFeed() {
   };
 
   const limit = getPostLimit();
+  const isBlocked = hasMounted && user && limit === 0;
 
   return (
     <Mainlayout>
@@ -191,12 +252,17 @@ export default function SocialFeed() {
             className="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded transition"
           >
             <Users className="w-4 h-4" />
-            Friends {friendCount > 0 && <span className="ml-1 bg-white text-blue-600 rounded-full px-1.5 text-xs font-bold">{friendCount}</span>}
+            Friends
+            {hasMounted && friendCount > 0 && (
+              <span className="ml-1 bg-white text-blue-600 rounded-full px-1.5 text-xs font-bold">
+                {friendCount}
+              </span>
+            )}
           </Link>
         </div>
 
         {/* Create Post Card */}
-        {user ? (
+        {hasMounted && user ? (
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
@@ -205,46 +271,76 @@ export default function SocialFeed() {
               <div className="flex-1">
                 <textarea
                   placeholder={
-                    limit === 0
+                    isBlocked
                       ? "Add at least 1 friend to start posting..."
                       : "What's on your mind?"
                   }
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  disabled={limit === 0}
+                  disabled={!!isBlocked}
                   rows={3}
                   className="w-full resize-none border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-50 disabled:text-gray-400"
                 />
-                {limit !== 0 && (
-                  <div className="mt-2 flex gap-2 flex-wrap items-center">
-                    <div className="flex gap-2 flex-1">
-                      <input
-                        type="text"
-                        placeholder="Media URL (image/video)"
-                        value={mediaUrl}
-                        onChange={(e) => setMediaUrl(e.target.value)}
-                        className="flex-1 border border-gray-200 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 min-w-0"
-                      />
-                      <select
-                        value={mediaType}
-                        onChange={(e) => setMediaType(e.target.value as any)}
-                        className="border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none"
-                      >
-                        <option value="none">No media</option>
-                        <option value="image">Image</option>
-                        <option value="video">Video</option>
-                      </select>
-                    </div>
+
+                {/* Media Preview */}
+                {previewUrl && (
+                  <div className="relative mt-2 rounded-lg overflow-hidden border border-gray-200">
+                    {mediaType === "image" ? (
+                      <img src={previewUrl} alt="preview" className="w-full max-h-56 object-cover" />
+                    ) : (
+                      <video src={previewUrl} controls className="w-full max-h-56" />
+                    )}
                     <button
-                      onClick={handlePost}
-                      disabled={posting}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-medium transition disabled:opacity-60"
+                      onClick={removeSelectedFile}
+                      className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full p-1 hover:bg-opacity-80"
                     >
-                      {posting ? "Posting..." : "Post"}
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 )}
-                {limit === 0 && (
+
+                {!isBlocked && (
+                  <div className="mt-2 flex gap-2 items-center flex-wrap">
+                    {/* File Upload Button */}
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="media-upload"
+                    />
+                    <label
+                      htmlFor="media-upload"
+                      className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-400 px-3 py-1.5 rounded cursor-pointer transition"
+                    >
+                      {mediaType === "video" ? (
+                        <Film className="w-4 h-4" />
+                      ) : (
+                        <ImageIcon className="w-4 h-4" />
+                      )}
+                      {selectedFile ? selectedFile.name.substring(0, 20) + "..." : "Photo / Video"}
+                    </label>
+
+                    <button
+                      onClick={handlePost}
+                      disabled={posting || uploading}
+                      className="ml-auto flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-medium transition disabled:opacity-60"
+                    >
+                      {uploading ? (
+                        <>
+                          <Upload className="w-3 h-3 animate-bounce" /> Uploading...
+                        </>
+                      ) : posting ? (
+                        "Posting..."
+                      ) : (
+                        "Post"
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {isBlocked && (
                   <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                     <Users className="w-3 h-3" />
                     You need at least 1 friend to post.{" "}
@@ -253,22 +349,20 @@ export default function SocialFeed() {
                     </Link>
                   </p>
                 )}
-                {limit !== Infinity && limit > 0 && (
+                {hasMounted && !isBlocked && limit !== Infinity && limit > 0 && (
                   <p className="text-xs text-gray-400 mt-1">
-                    Post limit today: {limit}/day ({friendCount} friend{friendCount !== 1 ? "s" : ""})
+                    Post limit: {limit}/day ({friendCount} friend{friendCount !== 1 ? "s" : ""})
                   </p>
                 )}
               </div>
             </div>
           </div>
-        ) : (
+        ) : hasMounted && !user ? (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center text-sm text-blue-700">
-            <Link href="/auth" className="font-medium underline">
-              Log in
-            </Link>{" "}
+            <Link href="/auth" className="font-medium underline">Log in</Link>{" "}
             to create posts, like, comment, and connect with others.
           </div>
-        )}
+        ) : null}
 
         {/* Feed */}
         {loading ? (
@@ -283,8 +377,8 @@ export default function SocialFeed() {
         ) : (
           <div className="space-y-4">
             {posts.map((post) => {
-              const liked = user && post.likes.includes(user._id);
-              const shared = user && post.shares.some((s) => s.userid === user._id);
+              const liked = hasMounted && user && post.likes.includes(user._id);
+              const shared = hasMounted && user && post.shares.some((s) => s.userid === user._id);
               return (
                 <div key={post._id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                   {/* Post Header */}
@@ -300,8 +394,11 @@ export default function SocialFeed() {
                         </p>
                       </div>
                     </Link>
-                    {user?._id === post.userid && (
-                      <button onClick={() => handleDelete(post._id)} className="text-gray-400 hover:text-red-500 transition">
+                    {hasMounted && user?._id === post.userid && (
+                      <button
+                        onClick={() => handleDelete(post._id)}
+                        className="text-gray-400 hover:text-red-500 transition"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
@@ -314,7 +411,11 @@ export default function SocialFeed() {
 
                   {/* Media */}
                   {post.mediaUrl && post.mediaType === "image" && (
-                    <img src={post.mediaUrl} alt="post media" className="w-full max-h-96 object-cover" />
+                    <img
+                      src={post.mediaUrl}
+                      alt="post media"
+                      className="w-full max-h-96 object-cover"
+                    />
                   )}
                   {post.mediaUrl && post.mediaType === "video" && (
                     <video controls className="w-full max-h-96">
@@ -367,7 +468,7 @@ export default function SocialFeed() {
                           </div>
                         ))}
                       </div>
-                      {user && (
+                      {hasMounted && user && (
                         <div className="flex gap-2 mt-3">
                           <input
                             type="text"
