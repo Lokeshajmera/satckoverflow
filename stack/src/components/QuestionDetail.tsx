@@ -440,7 +440,7 @@ const QuestionDetail = ({ questionId }: any) => {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`p-2 ${"text-gray-600 hover:text-orange-500"}`}
+                className="p-2 text-gray-600 hover:text-orange-500"
                 onClick={() => handleVote("upvote")}
               >
                 <ChevronUp className="w-6 h-6" />
@@ -449,7 +449,7 @@ const QuestionDetail = ({ questionId }: any) => {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`p-2 ${"text-gray-600 hover:text-orange-500"}`}
+                className="p-2 text-gray-600 hover:text-orange-500"
                 onClick={() => handleVote("downvote")}
               >
                 <ChevronDown className="w-6 h-6" />
@@ -458,11 +458,7 @@ const QuestionDetail = ({ questionId }: any) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`p-2 ${
-                    question?.isBookmarked
-                      ? "text-yellow-500"
-                      : "text-gray-600 hover:text-yellow-500"
-                  }`}
+                  className={question?.isBookmarked ? "p-2 text-yellow-500" : "p-2 text-gray-600 hover:text-yellow-500"}
                   onClick={handlebookmark}
                 >
                   <Bookmark
