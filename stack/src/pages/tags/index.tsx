@@ -3,10 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Mainlayout from "@/layout/Mainlayout";
 import axiosInstance from "@/lib/axiosinstance";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
+import { toast } from "react-toastify";
+import { useRouter } from "next/router";
 
 export default function Tags() {
   const [tags, setTags] = useState<{ tag: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -58,10 +63,27 @@ export default function Tags() {
   return (
     <Mainlayout>
       <main className="min-w-0 p-4 lg:p-6">
-        <h1 className="text-xl lg:text-2xl font-semibold mb-2">Tags</h1>
-        <p className="text-sm text-gray-600 mb-6 max-w-2xl">
-          A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.
-        </p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div>
+            <h1 className="text-xl lg:text-2xl font-semibold mb-2">Tags</h1>
+            <p className="text-sm text-gray-600 max-w-2xl">
+              A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              if (!user) {
+                toast.error("Please login to ask a question");
+                router.push("/auth");
+              } else {
+                router.push("/ask");
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium whitespace-nowrap"
+          >
+            Ask Question
+          </button>
+        </div>
 
         {tags.length === 0 ? (
           <div className="text-center text-gray-500 mt-4">No tags found.</div>

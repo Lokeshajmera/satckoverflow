@@ -404,10 +404,24 @@ const QuestionDetail = ({ questionId }: any) => {
   return (
     <div className="max-w-5xl">
       {/* Question Header */}
-      <div className="mb-6">
-        <h1 className="text-xl lg:text-2xl font-semibold mb-4 text-gray-900">
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">
           {question.questiontitle}
         </h1>
+        <Button
+          onClick={() => {
+            if (!user) {
+              toast.error("Please login to ask a question");
+              router.push("/auth");
+            } else {
+              router.push("/ask");
+            }
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Ask Question
+        </Button>
+      </div>
 
         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
