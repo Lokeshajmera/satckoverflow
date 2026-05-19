@@ -26,14 +26,19 @@ export default function FriendsPage() {
   const [friendships, setFriendships] = useState<Friendship[]>([]);
   const [pending, setPending] = useState<Friendship[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted && user) {
       fetchAll();
-    } else {
+    } else if (hasMounted && !user) {
       setLoading(false);
     }
-  }, [user]);
+  }, [hasMounted, user]);
 
   const fetchAll = async () => {
     try {
@@ -94,6 +99,16 @@ export default function FriendsPage() {
   };
 
   const friends = friendships.filter((f) => f.status === "accepted");
+
+  if (!hasMounted) {
+    return (
+      <Mainlayout>
+        <div className="flex justify-center py-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500" />
+        </div>
+      </Mainlayout>
+    );
+  }
 
   if (!user) {
     return (
