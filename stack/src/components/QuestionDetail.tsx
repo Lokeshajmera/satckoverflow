@@ -423,11 +423,11 @@ const QuestionDetail = ({ questionId }: any) => {
         </Button>
       </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>Asked {new Date(question.askedon).toLocaleDateString()}</span>
-          </div>
+      {/* Metadata */}
+      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
+        <div className="flex items-center gap-1">
+          <Clock className="w-4 h-4" />
+          <span>Asked {new Date(question.askedon).toLocaleDateString()}</span>
         </div>
       </div>
 
