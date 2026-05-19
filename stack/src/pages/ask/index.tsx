@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import axiosInstance from "@/lib/axiosinstance";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 const index = () => {
@@ -21,6 +21,13 @@ const index = () => {
     tags: [] as string[],
   });
   const [newTag, setNewTag] = useState("");
+  
+  useEffect(() => {
+    if (!user) {
+      toast.error("Please login to ask a question");
+      router.push("/auth");
+    }
+  }, [user, router]);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -38,7 +45,7 @@ const index = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error("PLlease login to ask question");
+      toast.error("Please login to ask question");
       router.push("/auth");
       return;
     }

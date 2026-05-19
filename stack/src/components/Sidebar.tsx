@@ -20,7 +20,7 @@ const Sidebar = ({ isopen }: any) => {
     <div>
       <aside
         className={cn(
-          " top-[53px]  w-48 lg:w-64 min-h-screen bg-white shadow-sm border-r transition-transform duration-200 ease-in-out md:translate-x-0",
+          "fixed z-40 md:relative md:z-0 top-[53px] md:top-0 h-[calc(100vh-53px)] md:min-h-screen w-48 lg:w-64 bg-white shadow-sm border-r transition-transform duration-200 ease-in-out md:translate-x-0",
           isopen ? "translate-x-0" : "-translate-x-full"
         )}
       >

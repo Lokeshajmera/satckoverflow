@@ -69,7 +69,7 @@ const questions = [
     timeAgo: "25 mins ago",
   },
 ];
-export default function Home() {
+export default function Questions() {
   const [question, setquestion] = useState<any>(null);
   const [loading, setloading] = useState(true);
   const router = useRouter();
@@ -106,7 +106,7 @@ export default function Home() {
     <Mainlayout>
       <main className="min-w-0 p-4 lg:p-6 ">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-xl lg:text-2xl font-semibold">Top Questions</h1>
+          <h1 className="text-xl lg:text-2xl font-semibold">All Questions</h1>
           <button
             onClick={() => {
               if (!user) {
