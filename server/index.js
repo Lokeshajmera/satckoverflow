@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import userroutes from "./routes/auth.js"
 import questionroute from "./routes/question.js"
 import answerroutes from "./routes/answer.js"
+import postroutes from "./routes/post.js"
+import friendshiproutes from "./routes/friendship.js"
 const app = express();
 dotenv.config();
 app.use(express.json({ limit: "30mb", extended: true }));
@@ -16,6 +18,8 @@ app.get("/", (req, res) => {
 app.use('/user',userroutes)
 app.use('/question',questionroute)
 app.use('/answer',answerroutes)
+app.use('/social',postroutes)
+app.use('/friends',friendshiproutes)
 const PORT = process.env.PORT || 5000;
 const databaseurl = process.env.MONGODB_URL;
 
