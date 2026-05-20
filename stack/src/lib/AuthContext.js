@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
       const msg = error.response?.data.message || "Signup failed";
       seterror(msg);
       toast.error(msg);
+      throw error;
     } finally {
       setloading(false);
     }
@@ -53,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       const msg = error.response?.data.message || "Login failed";
       seterror(msg);
       toast.error(msg);
+      throw error;
     } finally {
       setloading(false);
     }
