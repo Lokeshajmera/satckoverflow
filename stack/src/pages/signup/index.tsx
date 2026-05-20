@@ -19,13 +19,23 @@ export default function SignUpPage() {
   const router = useRouter();
   const { Signup, loading } = useAuth();
   const [form, setform] = useState({ name: "", email: "", password: "" });
+
+  const isPasswordValid = (password: string) => {
+    return password.length >= 8 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+  };
+
   const handleChange = (e: any) => {
     setform({ ...form, [e.target.id]: e.target.value });
   };
+
   const handlesubmit = async (e: any) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.password) {
       toast.error("ALL Fields are required");
+      return;
+    }
+    if (!isPasswordValid(form.password)) {
+      toast.error("Password does not meet requirements");
       return;
     }
     try {
@@ -148,7 +158,7 @@ export default function SignUpPage() {
                   value={form.password}
                   onChange={handleChange}
                 />
-                <p className="text-xs text-gray-600">
+                <p className={`text-xs ${form.password && !isPasswordValid(form.password) ? "text-red-500 font-medium" : "text-gray-600"}`}>
                   Passwords must contain at least eight characters, including at
                   least 1 letter and 1 number.
                 </p>

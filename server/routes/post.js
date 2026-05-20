@@ -6,8 +6,11 @@ import {
   commentPost,
   sharePost,
   deletePost,
+  likeComment,
+  replyComment,
 } from "../controller/post.js";
 import upload from "../middleware/upload.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -27,12 +30,13 @@ router.post("/upload", upload.single("file"), (req, res) => {
   }
 });
 
-router.post("/create", createPost);
+router.post("/create", auth, createPost);
 router.get("/getall", getAllPosts);
-router.patch("/like/:id", likePost);
-router.post("/comment/:id", commentPost);
-router.patch("/share/:id", sharePost);
-router.delete("/delete/:id", deletePost);
+router.patch("/like/:id", auth, likePost);
+router.post("/comment/:id", auth, commentPost);
+router.patch("/share/:id", auth, sharePost);
+router.delete("/delete/:id", auth, deletePost);
+router.patch("/comment/like/:postId/:commentId", auth, likeComment);
+router.post("/comment/reply/:postId/:commentId", auth, replyComment);
 
 export default router;
-

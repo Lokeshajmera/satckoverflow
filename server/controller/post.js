@@ -1,5 +1,6 @@
 import Post from "../models/post.js";
 import Friendship from "../models/friendship.js";
+import User from "../models/auth.js";
 
 // Helper: get accepted friend count for a user
 const getFriendCount = async (userid) => {
@@ -32,26 +33,30 @@ const getDailyLimit = (friendCount) => {
 // CREATE POST
 export const createPost = async (req, res) => {
   const { userid, username, content, mediaUrl, mediaType } = req.body;
+
   if (!userid || !username) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Login expired. Please login again." });
   }
 
   try {
     const friendCount = await getFriendCount(userid);
     const limit = getDailyLimit(friendCount);
 
+    console.log(`[DEBUG] CreatePost - User: ${username}, Friends: ${friendCount}, Limit: ${limit}`);
+
     if (limit === 0) {
       return res.status(403).json({
-        message: "You need at least 1 friend to post. Connect with someone first!",
+        message: "Add at least 1 friend to start sharing posts!",
       });
     }
 
     if (limit !== Infinity) {
       const todayCount = await getTodayPostCount(userid);
+      console.log(`[DEBUG] CreatePost - Today's Count: ${todayCount}`);
+
       if (todayCount >= limit) {
-        return res.status(403).json({
-          message: `You can only post ${limit} time(s) per day with ${friendCount} friend(s). Add more friends to post more!`,
-        });
+        const errorMsg = `Post limit reached! You have ${friendCount} friend(s), allowing ${limit} post(s) per day. Add more friends to post more!`;
+        return res.status(403).json({ message: errorMsg });
       }
     }
 
@@ -131,16 +136,63 @@ export const sharePost = async (req, res) => {
     const post = await Post.findById(id);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    const alreadyShared = post.shares.find((s) => s.userid === userid);
-    if (alreadyShared) {
-      return res.status(400).json({ message: "You have already shared this post" });
-    }
-
     post.shares.push({ userid, username });
     await post.save();
     res.status(200).json({ data: post });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// LIKE / UNLIKE COMMENT
+export const likeComment = async (req, res) => {
+  const { postId, commentId } = req.params;
+  const { userid } = req.body;
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    if (comment.likes.includes(userid)) {
+      comment.likes = comment.likes.filter((uid) => uid !== userid);
+    } else {
+      comment.likes.push(userid);
+    }
+
+    await post.save();
+    res.status(200).json({ data: post });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// REPLY TO COMMENT
+export const replyComment = async (req, res) => {
+  const { postId, commentId } = req.params;
+  const { userid, username, text } = req.body;
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    comment.replies = comment.replies || [];
+
+    let finalUsername = username;
+    if (!finalUsername) {
+      const userDoc = await User.findById(userid);
+      finalUsername = userDoc?.name || "Member";
+    }
+
+    comment.replies.push({ userid, username: finalUsername, text });
+    await post.save();
+    res.status(200).json({ data: post });
+  } catch (error) {
+    console.error("Reply Comment Error:", error);
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
 };
 

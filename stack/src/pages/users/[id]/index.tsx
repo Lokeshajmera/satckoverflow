@@ -52,6 +52,12 @@ const index = () => {
     tags: users?.tags || [],
   });
   const [newTag, setNewTag] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     const fetchuser = async () => {
@@ -98,6 +104,37 @@ const index = () => {
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error("All password fields are required");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await axiosInstance.patch(`/user/update-password/${user?._id}`, {
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      toast.success("Password updated successfully!");
+      setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error: any) {
+      console.error(error);
+      const message = error.response?.data?.message || "Failed to update password";
+      toast.error(message);
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -243,6 +280,70 @@ const index = () => {
                               );
                             })}
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Security Section */}
+                      <div className="space-y-4 pt-4 border-t">
+                        <h3 className="text-lg font-semibold text-red-600">
+                          Security
+                        </h3>
+                        <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                          <div>
+                            <Label htmlFor="oldPassword">Current Password</Label>
+                            <Input
+                              id="oldPassword"
+                              type="password"
+                              value={passwordForm.oldPassword}
+                              onChange={(e) =>
+                                setPasswordForm({
+                                  ...passwordForm,
+                                  oldPassword: e.target.value,
+                                })
+                              }
+                              placeholder="Required to change password"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="newPassword">New Password</Label>
+                              <Input
+                                id="newPassword"
+                                type="password"
+                                value={passwordForm.newPassword}
+                                onChange={(e) =>
+                                  setPasswordForm({
+                                    ...passwordForm,
+                                    newPassword: e.target.value,
+                                  })
+                                }
+                                placeholder="Min 6 characters"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                              <Input
+                                id="confirmPassword"
+                                type="password"
+                                value={passwordForm.confirmPassword}
+                                onChange={(e) =>
+                                  setPasswordForm({
+                                    ...passwordForm,
+                                    confirmPassword: e.target.value,
+                                  })
+                                }
+                                placeholder="Repeat new password"
+                              />
+                            </div>
+                          </div>
+                          <Button
+                            onClick={handleUpdatePassword}
+                            disabled={isUpdatingPassword}
+                            variant="destructive"
+                            className="w-full sm:w-auto"
+                          >
+                            {isUpdatingPassword ? "Updating..." : "Update Password"}
+                          </Button>
                         </div>
                       </div>
 

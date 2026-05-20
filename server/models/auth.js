@@ -7,5 +7,7 @@ const userschema = mongoose.Schema({
   about: { type: String },
   tags: { type: [String] },
   joinDate: { type: Date, default: Date.now },
+  phoneNumber: { type: String },
+  lastPasswordResetRequest: { type: Date },
 });
 export default mongoose.model("user", userschema);

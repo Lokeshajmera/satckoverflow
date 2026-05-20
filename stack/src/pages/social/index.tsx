@@ -18,11 +18,21 @@ import {
   Film,
 } from "lucide-react";
 
+type Reply = {
+  _id: string;
+  userid: string;
+  username: string;
+  text: string;
+  createdAt: string;
+};
+
 type Comment = {
   _id: string;
   userid: string;
   username: string;
   text: string;
+  likes: string[];
+  replies: Reply[];
   createdAt: string;
 };
 
@@ -61,6 +71,9 @@ export default function SocialFeed() {
   const [friendCount, setFriendCount] = useState(0);
   const [openComments, setOpenComments] = useState<string | null>(null);
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [replyingTo, setReplyingTo] = useState<{ postId: string; commentId: string } | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [shareMenuOpen, setShareMenuOpen] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -87,7 +100,7 @@ export default function SocialFeed() {
     try {
       const res = await axiosInstance.get(`/friends/friends/${user?._id}`);
       setFriendCount(res.data.data.length);
-    } catch {}
+    } catch { }
   };
 
   const getPostLimit = () => {
@@ -166,7 +179,8 @@ export default function SocialFeed() {
       removeSelectedFile();
       toast.success("Post published!");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to post");
+      const msg = err?.response?.data?.message || err?.message || "Failed to publish post. Please check your connection and try again.";
+      toast.error(msg);
     } finally {
       setPosting(false);
       setUploading(false);
@@ -219,9 +233,57 @@ export default function SocialFeed() {
         username: user.name,
       });
       setPosts(posts.map((p) => (p._id === postId ? res.data.data : p)));
-      toast.success("Post shared!");
+      setShareMenuOpen(shareMenuOpen === postId ? null : postId);
+      toast.success("Post tracking updated!");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to share");
+    }
+  };
+
+  const handleSocialShare = (type: "whatsapp" | "email" | "sms", post: Post) => {
+    const text = `Check out this post by ${post.username}: ${post.content}\n\nLink: ${window.location.origin}/social#${post._id}`;
+    const url = encodeURIComponent(`${window.location.origin}/social#${post._id}`);
+
+    let shareUrl = "";
+    if (type === "whatsapp") {
+      shareUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    } else if (type === "email") {
+      shareUrl = `mailto:?subject=Cool Post on StackOverflow Clone&body=${encodeURIComponent(text)}`;
+    } else if (type === "sms") {
+      shareUrl = `sms:?body=${encodeURIComponent(text)}`;
+    }
+
+    window.open(shareUrl, "_blank");
+    handleShare(post._id); // Register the share in our DB too
+  };
+
+  const handleLikeComment = async (postId: string, commentId: string) => {
+    if (!user) return toast.error("Please login to like");
+    try {
+      const res = await axiosInstance.patch(`/social/comment/like/${postId}/${commentId}`, {
+        userid: user._id,
+      });
+      setPosts(posts.map((p) => (p._id === postId ? res.data.data : p)));
+    } catch {
+      toast.error("Failed to like comment");
+    }
+  };
+
+  const handleReply = async (postId: string, commentId: string) => {
+    if (!user) return toast.error("Please login to reply");
+    if (!replyText.trim()) return toast.error("Reply cannot be empty");
+    try {
+      const res = await axiosInstance.post(`/social/comment/reply/${postId}/${commentId}`, {
+        userid: user._id,
+        username: user.name,
+        text: replyText,
+      });
+      setPosts(posts.map((p) => (p._id === postId ? res.data.data : p)));
+      setReplyingTo(null);
+      setReplyText("");
+      toast.success("Reply added!");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Could not add reply. Add more friends to unlock more interactions!");
     }
   };
 
@@ -439,17 +501,41 @@ export default function SocialFeed() {
                       <MessageCircle className="w-4 h-4" />
                       {post.comments.length}
                     </button>
-                    <button
-                      onClick={() => handleShare(post._id)}
-                      className={`flex items-center gap-1 transition hover:text-green-500 ${shared ? "text-green-500 font-medium" : ""}`}
-                    >
-                      <Share2 className="w-4 h-4" />
-                      {post.shares.length}
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShareMenuOpen(shareMenuOpen === post._id ? null : post._id)}
+                        className={`flex items-center gap-1 transition hover:text-green-500 ${shared ? "text-green-500 font-medium" : ""}`}
+                      >
+                        <Share2 className="w-4 h-4" />
+                        {post.shares.length}
+                      </button>
+
+                      {shareMenuOpen === post._id && (
+                        <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-2 w-40 z-50">
+                          <button
+                            onClick={() => handleSocialShare("whatsapp", post)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <span className="w-2 h-2 bg-green-500 rounded-full" /> WhatsApp
+                          </button>
+                          <button
+                            onClick={() => handleSocialShare("email", post)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <span className="w-2 h-2 bg-blue-500 rounded-full" /> Email
+                          </button>
+                          <button
+                            onClick={() => handleSocialShare("sms", post)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <span className="w-2 h-2 bg-gray-500 rounded-full" /> Text Message
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     {post.shares.length > 0 && (
                       <span className="text-xs text-gray-400 ml-auto">
-                        Shared by {post.shares[post.shares.length - 1].username}
-                        {post.shares.length > 1 && ` +${post.shares.length - 1} more`}
+                        Latest share by {post.shares[post.shares.length - 1].username}
                       </span>
                     )}
                   </div>
@@ -462,9 +548,65 @@ export default function SocialFeed() {
                           <p className="text-xs text-gray-400">No comments yet.</p>
                         )}
                         {post.comments.map((c) => (
-                          <div key={c._id} className="text-sm">
-                            <span className="font-semibold text-gray-700">{c.username}</span>{" "}
-                            <span className="text-gray-600">{c.text}</span>
+                          <div key={c._id} className="space-y-1">
+                            <div className="flex items-start justify-between group">
+                              <div className="text-sm">
+                                <span className="font-semibold text-gray-700">{c.username}</span>{" "}
+                                <span className="text-gray-600">{c.text}</span>
+                                <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-500">
+                                  <button
+                                    onClick={() => handleLikeComment(post._id, c._id)}
+                                    className={`flex items-center gap-1 hover:underline ${hasMounted && user && c.likes?.includes(user._id) ? "text-blue-600 font-medium" : ""}`}
+                                  >
+                                    <Heart className={`w-3 h-3 ${hasMounted && user && c.likes?.includes(user._id) ? "fill-blue-600" : ""}`} />
+                                    {c.likes?.length > 0 && <span>{c.likes.length}</span>}
+                                  </button>
+                                  <button
+                                    onClick={() => setReplyingTo({ postId: post._id, commentId: c._id })}
+                                    className="hover:underline"
+                                  >
+                                    Reply
+                                  </button>
+                                  <span>{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Replies */}
+                            {c.replies?.length > 0 && (
+                              <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-3 py-1">
+                                {c.replies.map((r) => (
+                                  <div key={r._id} className="text-xs">
+                                    <span className="font-semibold text-gray-700">{r.username}</span>{" "}
+                                    <span className="text-gray-600">{r.text}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Reply Input */}
+                            {replyingTo?.commentId === c._id && (
+                              <div className="ml-8 flex gap-2 mt-2">
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  placeholder={`Reply to ${c.username}...`}
+                                  value={replyText}
+                                  onChange={(e) => setReplyText(e.target.value)}
+                                  onKeyDown={(e) => e.key === "Enter" && handleReply(post._id, c._id)}
+                                  className="flex-1 border border-gray-200 rounded-full px-3 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                />
+                                <button
+                                  onClick={() => handleReply(post._id, c._id)}
+                                  className="text-blue-600"
+                                >
+                                  <Send className="w-3 h-3" />
+                                </button>
+                                <button onClick={() => setReplyingTo(null)} className="text-gray-400">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
