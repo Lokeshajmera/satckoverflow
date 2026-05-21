@@ -8,6 +8,7 @@ import questionroute from "./routes/question.js"
 import answerroutes from "./routes/answer.js"
 import postroutes from "./routes/post.js"
 import friendshiproutes from "./routes/friendship.js"
+import paymentroutes from "./routes/payment.js"
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/question', questionroute)
 app.use('/answer', answerroutes)
 app.use('/social', postroutes)
 app.use('/friends', friendshiproutes)
+app.use('/payment', paymentroutes)
 
 const PORT = process.env.PORT || 5000;
 const databaseurl = process.env.MONGODB_URL;

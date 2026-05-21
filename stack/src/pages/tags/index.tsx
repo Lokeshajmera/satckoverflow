@@ -6,8 +6,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
+import { useTranslation } from "react-i18next";
+import React from "react";
 
 export default function Tags() {
+  const { t } = useTranslation();
+  const [hasMounted, setHasMounted] = React.useState(false);
   const [tags, setTags] = useState<{ tag: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -18,7 +22,7 @@ export default function Tags() {
       try {
         const res = await axiosInstance.get("/question/getallquestion");
         const questions = res.data.data;
-        
+
         // Extract tags and count frequencies
         const tagMap: Record<string, number> = {};
         questions.forEach((q: any) => {
@@ -48,6 +52,7 @@ export default function Tags() {
       }
     };
     fetchTags();
+    setHasMounted(true);
   }, []);
 
   if (loading) {
@@ -65,9 +70,9 @@ export default function Tags() {
       <main className="min-w-0 p-4 lg:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-xl lg:text-2xl font-semibold mb-2">Tags</h1>
+            <h1 className="text-xl lg:text-2xl font-semibold mb-2">{hasMounted ? t("tagsTitle") : "Tags"}</h1>
             <p className="text-sm text-gray-600 max-w-2xl">
-              A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.
+              {hasMounted ? t("tagsDesc") : "A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question."}
             </p>
           </div>
           <button
@@ -81,12 +86,12 @@ export default function Tags() {
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium whitespace-nowrap"
           >
-            Ask Question
+            {hasMounted ? t("askQuestion") : "Ask Question"}
           </button>
         </div>
 
         {tags.length === 0 ? (
-          <div className="text-center text-gray-500 mt-4">No tags found.</div>
+          <div className="text-center text-gray-500 mt-4">{hasMounted ? t("noTagsFound") : "No tags found."}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {tags.map(({ tag, count }) => (
@@ -102,7 +107,7 @@ export default function Tags() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 text-sm text-gray-500 mt-auto">
-                  {count} {count === 1 ? "question" : "questions"}
+                  {count} {count === 1 ? (hasMounted ? t("answer") : "question") : (hasMounted ? t("answers") : "questions")}
                 </CardContent>
               </Card>
             ))}

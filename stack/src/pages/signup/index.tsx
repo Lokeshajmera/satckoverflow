@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 export default function SignUpPage() {
   const router = useRouter();
   const { Signup, loading } = useAuth();
-  const [form, setform] = useState({ name: "", email: "", password: "" });
+  const [form, setform] = useState({ name: "", email: "", password: "", phoneNumber: "" });
 
   const isPasswordValid = (password: string) => {
     return password.length >= 8 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
@@ -30,7 +30,7 @@ export default function SignUpPage() {
 
   const handlesubmit = async (e: any) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.password) {
+    if (!form.name || !form.email || !form.password || !form.phoneNumber) {
       toast.error("ALL Fields are required");
       return;
     }
@@ -145,6 +145,18 @@ export default function SignUpPage() {
                   type="email"
                   placeholder="m@example.com"
                   value={form.email}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber" className="text-sm">
+                  Mobile Number
+                </Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="e.g. +91 1234567890"
+                  value={form.phoneNumber}
                   onChange={handleChange}
                 />
               </div>

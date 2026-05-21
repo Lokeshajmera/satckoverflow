@@ -11,8 +11,11 @@ import { Plus, X } from "lucide-react";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const index = () => {
+  const { t } = useTranslation();
+  const [hasMounted, setHasMounted] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -21,10 +24,13 @@ const index = () => {
     tags: [] as string[],
   });
   const [newTag, setNewTag] = useState("");
-  
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!user) {
-      toast.error("Please login to ask a question");
+      toast.error(hasMounted ? t("loginToPost") : "Please login to ask a question");
       router.push("/auth");
     }
   }, [user, router]);
@@ -45,8 +51,16 @@ const index = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error("Please login to ask question");
+      toast.error(hasMounted ? t("loginLink") : "Please login to ask question");
       router.push("/auth");
+      return;
+    }
+    if (formData.body.length < 20) {
+      toast.error(hasMounted ? t("bodyMinLengthError") : "Question body must have at least 20 characters.");
+      return;
+    }
+    if (formData.tags.length !== 5) {
+      toast.error(hasMounted ? t("exactTagsError") : "You must add exactly 5 tags.");
       return;
     }
     try {
@@ -60,12 +74,17 @@ const index = () => {
         },
       });
       if (res.data.data) {
-        toast.success("Question posted successfully");
+        toast.success(hasMounted ? t("questionPostedSuccess") : "Question posted successfully");
         router.push("/");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
-      toast.error("Something went wrong");
+      if (error.response?.status === 403) {
+        toast.error(error.response.data.message || "Limit reached");
+        router.push("/subscription");
+      } else {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
     }
   };
   const handleAddTag = (e: any) => {
@@ -86,14 +105,14 @@ const index = () => {
     <Mainlayout>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-xl lg:text-2xl font-semibold mb-6">
-          Ask a public question
+          {hasMounted ? t("askQuestionTitle") : "Ask a public question"}
         </h1>
 
         <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg lg:text-xl">
-                Writing a good question
+                {hasMounted ? t("writingGoodQuestion") : "Writing a good question"}
               </CardTitle>
             </CardHeader>
 
@@ -116,13 +135,19 @@ const index = () => {
               </div>
 
               <div>
-                <Label htmlFor="body" className="text-base font-semibold">
-                  What are the details of your problem?
-                </Label>
-                <p className="text-sm text-gray-600 mb-2">
-                  Introduce the problem and expand on what you put in the title.
-                  Minimum 20 characters.
-                </p>
+                <div className="flex justify-between items-end mb-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="body" className="text-base font-semibold">
+                      {hasMounted ? t("problemDetails") : "What are the details of your problem?"}
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      {hasMounted ? t("problemDesc") : "Introduce the problem and expand on what you put in the title. Minimum 20 characters."}
+                    </p>
+                  </div>
+                  <span className={`text-sm font-semibold whitespace-nowrap ml-4 ${formData.body.length < 20 ? 'text-red-500' : 'text-green-600'}`}>
+                    {hasMounted ? t("charsCount", { count: formData.body.length }) : `${formData.body.length} / 20+ chars`}
+                  </span>
+                </div>
                 <Textarea
                   id="body"
                   value={formData.body}
@@ -133,10 +158,10 @@ const index = () => {
               </div>
               <div>
                 <Label htmlFor="tags" className="text-base font-semibold">
-                  Tags
+                  {hasMounted ? t("tagsLabelCount", { count: formData.tags.length }) : `Tags (${formData.tags.length}/5)`}
                 </Label>
                 <p className="text-sm text-gray-600 mb-2">
-                  Add up to 5 tags to describe what your question is about.
+                  {hasMounted ? t("tagsInputDesc") : "Add exactly 5 tags to describe what your question is about."}
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -179,7 +204,7 @@ const index = () => {
 
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                 <Button type="submit" className="bg-blue-600 text-white">
-                  Review your question
+                  {hasMounted ? t("reviewQuestion") : "Review your question"}
                 </Button>
               </div>
             </CardContent>

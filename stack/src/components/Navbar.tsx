@@ -2,6 +2,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 // const User = {
 //   _id: "1",
@@ -10,6 +12,7 @@ import { useEffect, useState } from "react";
 
 const Navbar = ({ handleslidein }: any) => {
   const { user, Logout } = useAuth();
+  const { t } = useTranslation();
   const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
     setHasMounted(true);
@@ -33,13 +36,17 @@ const Navbar = ({ handleslidein }: any) => {
           </Link>
 
           <div className="hidden sm:flex gap-1">
-            {["About", "Products", "For Teams"].map((item) => (
+            {[
+              { label: "About", key: "aboutUsTitle", href: "/about" },
+              { label: "Products", key: "productsTitle", href: "/products" },
+              { label: "For Teams", key: "forTeamsTitle", href: "/for-teams" }
+            ].map((item) => (
               <Link
-                key={item}
-                href="/"
+                key={item.key}
+                href={item.href}
                 className="text-sm text-[#454545] font-medium px-4 py-2 rounded hover:bg-gray-200 transition"
               >
-                {item}
+                {hasMounted ? t(item.key) : item.label}
               </Link>
             ))}
           </div>
@@ -52,13 +59,14 @@ const Navbar = ({ handleslidein }: any) => {
             <Search className="absolute left-4 top-2.5 h-4 w-4 text-gray-600" />
           </form>
         </div>
-        <div className="flex items-center gap-2">
-           {!hasMounted ? null : !user ? (
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          {!hasMounted ? null : !user ? (
             <Link
               href="/auth"
               className="text-sm font-medium text-[#454545] bg-[#e7f8fe] hover:bg-[#d3e4eb] border border-blue-500 px-4 py-1.5 rounded transition"
             >
-              Log in
+              {t("login")}
             </Link>
           ) : (
             <>
@@ -69,11 +77,25 @@ const Navbar = ({ handleslidein }: any) => {
                 {user.name?.charAt(0).toUpperCase()}
               </Link>
 
+              <div className="flex flex-col items-start hidden sm:flex mr-2">
+                <span className="text-xs font-semibold text-gray-800 leading-tight">{user.name}</span>
+                <span className={`text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full ${user.plan === "Gold" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
+                  user.plan === "Silver" ? "bg-gray-200 text-gray-700 border-gray-400" :
+                    user.plan === "Bronze" ? "bg-orange-100 text-orange-800 border-orange-300" :
+                      "bg-blue-50 text-blue-600 border-blue-200"
+                  } border`}>
+                  {user.plan || "Free"} Plan
+                </span>
+                <span className="text-[10px] font-bold text-orange-600 mt-0.5">
+                  {(user.points || 0).toLocaleString()} reputation
+                </span>
+              </div>
+
               <button
                 onClick={handlelogout}
                 className="text-sm font-medium text-[#454545] bg-[#e7f8fe] hover:bg-[#d3e4eb] border border-blue-500 px-4 py-1.5 rounded transition"
               >
-                Log out
+                {t("logout")}
               </button>
             </>
           )}

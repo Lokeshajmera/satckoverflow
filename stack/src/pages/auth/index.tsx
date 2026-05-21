@@ -16,11 +16,15 @@ import { toast } from "react-toastify";
 
 const index = () => {
   const router = useRouter();
-  const { Login, loading } = useAuth();
   const [form, setform] = useState({ email: "", password: "" });
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState("");
+  const { Login, verifyLoginOTP, loading } = useAuth();
+
   const handleChange = (e: any) => {
     setform({ ...form, [e.target.id]: e.target.value });
   };
+
   const handlesubmit = async (e: any) => {
     e.preventDefault();
     if (!form.email || !form.password) {
@@ -28,12 +32,30 @@ const index = () => {
       return;
     }
     try {
-      await Login(form);
-      router.push("/");
+      const res = await Login(form);
+      if (res?.otpRequired) {
+        setShowOtp(true);
+        toast.info(res.message);
+      } else if (res?.success) {
+        router.push("/");
+      }
     } catch (error) {
       console.log(error);
     }
   };
+
+  const handleOtpSubmit = async (e: any) => {
+    e.preventDefault();
+    try {
+      const res = await verifyLoginOTP({ email: form.email, otp });
+      if (res?.success) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -112,35 +134,66 @@ const index = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  onChange={handleChange}
-                  value={form.email}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  onChange={handleChange}
-                  value={form.password}
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-sm"
-              >
-                {loading ? "loading" : "Log in"}
-              </Button>
+              {!showOtp ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      onChange={handleChange}
+                      value={form.email}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      onChange={handleChange}
+                      value={form.password}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-sm"
+                  >
+                    {loading ? "loading" : "Log in"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2 text-center">
+                    <p className="text-sm text-gray-600">Enter the OTP sent to your email to verify Chrome login.</p>
+                    <Input
+                      type="text"
+                      placeholder="6-digit OTP"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      maxLength={6}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleOtpSubmit}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-sm"
+                  >
+                    {loading ? "Verifying..." : "Verify & Login"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-xs"
+                    onClick={() => setShowOtp(false)}
+                  >
+                    Back to Login
+                  </Button>
+                </>
+              )}
               <div className="text-center text-sm">
                 <Link href="/auth/forgot-password" title="Forgot Password" className="text-blue-600 hover:underline">
                   Forgot your password?

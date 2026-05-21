@@ -17,6 +17,7 @@ import {
   X,
   Film,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Reply = {
   _id: string;
@@ -56,6 +57,7 @@ type Post = {
 };
 
 export default function SocialFeed() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -308,13 +310,13 @@ export default function SocialFeed() {
       <main className="max-w-2xl mx-auto p-4 lg:p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Social Feed</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{hasMounted ? t("socialFeedTitle") : "Social Feed"}</h1>
           <Link
             href="/social/friends"
             className="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded transition"
           >
             <Users className="w-4 h-4" />
-            Friends
+            {hasMounted ? t("friendsButton") : "Friends"}
             {hasMounted && friendCount > 0 && (
               <span className="ml-1 bg-white text-blue-600 rounded-full px-1.5 text-xs font-bold">
                 {friendCount}
@@ -334,8 +336,8 @@ export default function SocialFeed() {
                 <textarea
                   placeholder={
                     isBlocked
-                      ? "Add at least 1 friend to start posting..."
-                      : "What's on your mind?"
+                      ? (hasMounted ? t("blockedPostPlaceholder") : "Add at least 1 friend to start posting...")
+                      : (hasMounted ? t("postPlaceholder") : "What's on your mind?")
                   }
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -381,7 +383,7 @@ export default function SocialFeed() {
                       ) : (
                         <ImageIcon className="w-4 h-4" />
                       )}
-                      {selectedFile ? selectedFile.name.substring(0, 20) + "..." : "Photo / Video"}
+                      {selectedFile ? selectedFile.name.substring(0, 20) + "..." : (hasMounted ? t("photoVideo") : "Photo / Video")}
                     </label>
 
                     <button
@@ -391,12 +393,12 @@ export default function SocialFeed() {
                     >
                       {uploading ? (
                         <>
-                          <Upload className="w-3 h-3 animate-bounce" /> Uploading...
+                          <Upload className="w-3 h-3 animate-bounce" /> {hasMounted ? t("uploading") : "Uploading..."}
                         </>
                       ) : posting ? (
-                        "Posting..."
+                        hasMounted ? t("posting") : "Posting..."
                       ) : (
-                        "Post"
+                        hasMounted ? t("postButton") : "Post"
                       )}
                     </button>
                   </div>
@@ -405,15 +407,15 @@ export default function SocialFeed() {
                 {isBlocked && (
                   <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                     <Users className="w-3 h-3" />
-                    You need at least 1 friend to post.{" "}
+                    {hasMounted ? t("noFriendsPostWarning") : "You need at least 1 friend to post."}{" "}
                     <Link href="/social/friends" className="underline font-medium">
-                      Find friends →
+                      {hasMounted ? t("findFriends") : "Find friends"} →
                     </Link>
                   </p>
                 )}
                 {hasMounted && !isBlocked && limit !== Infinity && limit > 0 && (
                   <p className="text-xs text-gray-400 mt-1">
-                    Post limit: {limit}/day ({friendCount} friend{friendCount !== 1 ? "s" : ""})
+                    {t("postLimit")}: {limit}/{hasMounted ? t("day") : "day"} ({friendCount} friend{friendCount !== 1 ? "s" : ""})
                   </p>
                 )}
               </div>
@@ -421,8 +423,8 @@ export default function SocialFeed() {
           </div>
         ) : hasMounted && !user ? (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center text-sm text-blue-700">
-            <Link href="/auth" className="font-medium underline">Log in</Link>{" "}
-            to create posts, like, comment, and connect with others.
+            <Link href="/auth" className="font-medium underline">{hasMounted ? t("loginLink") : "Log in"}</Link>{" "}
+            {hasMounted ? t("loginToPost") : "to create posts, like, comment, and connect with others."}
           </div>
         ) : null}
 
@@ -434,7 +436,7 @@ export default function SocialFeed() {
         ) : posts.length === 0 ? (
           <div className="text-center text-gray-400 py-16">
             <ImageIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No posts yet. Be the first to share something!</p>
+            <p>{hasMounted ? t("noPostsYet") : "No posts yet. Be the first to share something!"}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -590,7 +592,7 @@ export default function SocialFeed() {
                                 <input
                                   type="text"
                                   autoFocus
-                                  placeholder={`Reply to ${c.username}...`}
+                                  placeholder={`${hasMounted ? t("reply") : "Reply"} to ${c.username}...`}
                                   value={replyText}
                                   onChange={(e) => setReplyText(e.target.value)}
                                   onKeyDown={(e) => e.key === "Enter" && handleReply(post._id, c._id)}
@@ -614,7 +616,7 @@ export default function SocialFeed() {
                         <div className="flex gap-2 mt-3">
                           <input
                             type="text"
-                            placeholder="Add a comment..."
+                            placeholder={hasMounted ? t("addComment") : "Add a comment..."}
                             value={commentTexts[post._id] || ""}
                             onChange={(e) =>
                               setCommentTexts((prev) => ({ ...prev, [post._id]: e.target.value }))

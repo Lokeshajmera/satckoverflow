@@ -15,10 +15,11 @@ import { Textarea } from "@/components/ui/textarea";
 import Mainlayout from "@/layout/Mainlayout";
 import { useAuth } from "@/lib/AuthContext";
 import axiosInstance from "@/lib/axiosinstance";
-import { Calendar, Edit, Plus, X } from "lucide-react";
+import { Calendar, Edit, Plus, X, Share } from "lucide-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 const getUserData = (id: string) => {
   const users = {
     "1": {
@@ -40,16 +41,24 @@ const getUserData = (id: string) => {
   return users[id as keyof typeof users] || users["1"];
 };
 const index = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const { id } = router.query;
+  const [hasMounted, setHasMounted] = useState(false);
   const [users, setusers] = useState<any>(null);
   const [loading, setloading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const [editForm, setEditForm] = useState({
     name: users?.name || "",
     about: users?.about || "",
     tags: users?.tags || [],
+    phoneNumber: users?.phoneNumber || "",
   });
   const [newTag, setNewTag] = useState("");
   const [passwordForm, setPasswordForm] = useState({
@@ -58,11 +67,15 @@ const index = () => {
     confirmPassword: "",
   });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [transferRecipient, setTransferRecipient] = useState<any>(null);
 
   useEffect(() => {
     const fetchuser = async () => {
       try {
         const res = await axiosInstance.get("/user/getalluser");
+        setAllUsers(res.data.data);
         const matcheduser = res.data.data.find((u: any) => u._id === id);
         setusers(matcheduser);
       } catch (error) {
@@ -73,6 +86,7 @@ const index = () => {
     };
     fetchuser();
   }, [id]);
+
   if (loading) {
     return (
       <Mainlayout>
@@ -81,7 +95,7 @@ const index = () => {
     );
   }
   if (!users || users.length === 0) {
-    return <div className="text-center text-gray-500 mt-4">No user found.</div>;
+    return <div className="text-center text-gray-500 mt-4">{hasMounted ? t("noUserFound") : "No user found."}</div>;
   }
 
   const handleSaveProfile = async () => {
@@ -95,6 +109,7 @@ const index = () => {
           name: editForm.name,
           about: editForm.about,
           tags: editForm.tags,
+          phoneNumber: editForm.phoneNumber,
         };
 
         setusers(updatedUser);
@@ -175,6 +190,12 @@ const index = () => {
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-1">
                   {users.name}
                 </h1>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-orange-600">
+                    {(users.points || 0).toLocaleString()}
+                  </span>
+                  <span className="text-sm text-gray-600 font-medium">{hasMounted ? t("reputation") : "Reputation"}</span>
+                </div>
               </div>
 
               {isOwnProfile && (
@@ -185,22 +206,22 @@ const index = () => {
                       className="flex items-center gap-2 bg-transparent"
                     >
                       <Edit className="w-4 h-4" />
-                      Edit Profile
+                      {hasMounted ? t("editProfile") : "Edit Profile"}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-gray-900">
                     <DialogHeader>
-                      <DialogTitle>Edit Profile</DialogTitle>
+                      <DialogTitle>{hasMounted ? t("editProfile") : "Edit Profile"}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-6 py-4">
                       {/* Basic Information */}
                       <div className="space-y-4">
                         <h3 className="text-lg font-semibold">
-                          Basic Information
+                          {hasMounted ? t("basicInformation") : "Basic Information"}
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor="name">Display Name</Label>
+                            <Label htmlFor="name">{hasMounted ? t("displayName") : "Display Name"}</Label>
                             <Input
                               id="name"
                               value={editForm.name}
@@ -213,13 +234,27 @@ const index = () => {
                               placeholder="Your display name"
                             />
                           </div>
+                          <div>
+                            <Label htmlFor="phoneNumber">{hasMounted ? t("mobileNumber") : "Mobile Number"}</Label>
+                            <Input
+                              id="phoneNumber"
+                              value={editForm.phoneNumber}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  phoneNumber: e.target.value,
+                                })
+                              }
+                              placeholder="e.g. +91 1234567890"
+                            />
+                          </div>
                         </div>
                       </div>
                       {/* About Section */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">About</h3>
+                        <h3 className="text-lg font-semibold">{hasMounted ? t("aboutTitle") : "About"}</h3>
                         <div>
-                          <Label htmlFor="about">About Me</Label>
+                          <Label htmlFor="about">{hasMounted ? t("aboutMe") : "About Me"}</Label>
                           <Textarea
                             id="about"
                             value={editForm.about}
@@ -238,7 +273,7 @@ const index = () => {
                       {/* Tags/Skills Section */}
                       <div className="space-y-4">
                         <h3 className="text-lg font-semibold">
-                          Skills & Technologies
+                          {hasMounted ? t("skillsTech") : "Skills & Technologies"}
                         </h3>
 
                         <div className="space-y-3">
@@ -286,11 +321,11 @@ const index = () => {
                       {/* Security Section */}
                       <div className="space-y-4 pt-4 border-t">
                         <h3 className="text-lg font-semibold text-red-600">
-                          Security
+                          {hasMounted ? t("security") : "Security"}
                         </h3>
                         <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                           <div>
-                            <Label htmlFor="oldPassword">Current Password</Label>
+                            <Label htmlFor="oldPassword">{hasMounted ? t("currentPassword") : "Current Password"}</Label>
                             <Input
                               id="oldPassword"
                               type="password"
@@ -306,7 +341,7 @@ const index = () => {
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="newPassword">New Password</Label>
+                              <Label htmlFor="newPassword">{hasMounted ? t("newPasswordLabel") : "New Password"}</Label>
                               <Input
                                 id="newPassword"
                                 type="password"
@@ -321,7 +356,7 @@ const index = () => {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                              <Label htmlFor="confirmPassword">{hasMounted ? t("confirmNewPassword") : "Confirm New Password"}</Label>
                               <Input
                                 id="confirmPassword"
                                 type="password"
@@ -342,7 +377,7 @@ const index = () => {
                             variant="destructive"
                             className="w-full sm:w-auto"
                           >
-                            {isUpdatingPassword ? "Updating..." : "Update Password"}
+                            {isUpdatingPassword ? (hasMounted ? t("updating") : "Updating...") : (hasMounted ? t("updatePassword") : "Update Password")}
                           </Button>
                         </div>
                       </div>
@@ -360,9 +395,148 @@ const index = () => {
                           onClick={handleSaveProfile}
                           className="bg-blue-600 hover:bg-blue-700"
                         >
-                          Save Changes
+                          {hasMounted ? t("saveChanges") : "Save Changes"}
                         </Button>
                       </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {isOwnProfile && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2 border-orange-500 text-orange-600 hover:bg-orange-50">
+                      <Share className="w-4 h-4" />
+                      {hasMounted ? t("transferPointsButton") : "Transfer Points to Others"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-white text-gray-900 max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>{hasMounted ? t("transferPointsTitle") : "Transfer Points"}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-2 space-y-4">
+                      <div className="space-y-2">
+                        <Label>{hasMounted ? t("searchUser") : "Search User"}</Label>
+                        <Input
+                          placeholder={hasMounted ? t("typeToSearch") : "Type name to search..."}
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && !transferRecipient && (
+                          <div className="max-h-32 overflow-y-auto border rounded-md mt-1">
+                            {allUsers
+                              .filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()) && u._id !== user?._id)
+                              .map(u => (
+                                <div
+                                  key={u._id}
+                                  onClick={() => {
+                                    setTransferRecipient(u);
+                                    setSearchTerm("");
+                                  }}
+                                  className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                >
+                                  {u.name}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {transferRecipient && (
+                        <div className="p-3 bg-blue-50 rounded-md flex justify-between items-center">
+                          <span className="text-sm font-medium">To: {transferRecipient.name}</span>
+                          <Button variant="ghost" size="sm" onClick={() => setTransferRecipient(null)}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <Label htmlFor="global-transfer-amount">{hasMounted ? t("amount") : "Amount"}</Label>
+                        <Input
+                          id="global-transfer-amount"
+                          type="number"
+                          placeholder="0"
+                        />
+                      </div>
+
+                      <Button
+                        disabled={!transferRecipient}
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                        onClick={async () => {
+                          const amount = parseInt((document.getElementById("global-transfer-amount") as HTMLInputElement).value);
+                          if (!amount || amount <= 0) {
+                            toast.error(hasMounted ? t("enterValidAmount") : "Enter a valid amount");
+                            return;
+                          }
+                          try {
+                            const res = await axiosInstance.post("/user/transfer-points", {
+                              amount,
+                              recipientId: transferRecipient._id
+                            });
+                            toast.success(res.data.message);
+                            window.location.reload();
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.message || "Transfer failed");
+                          }
+                        }}
+                      >
+                        {hasMounted ? t("sendPoints") : "Send Points"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {!isOwnProfile && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2 border-orange-500 text-orange-600 hover:bg-orange-50">
+                      <Share className="w-4 h-4" />
+                      {hasMounted ? t("transferPointsTitle") : "Transfer Points"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-white text-gray-900">
+                    <DialogHeader>
+                      <DialogTitle>{hasMounted ? t("transferPointsTitle") : "Transfer Points"} to {users.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                      <p className="text-sm text-gray-600">
+                        {hasMounted ? t("transferBalanceInfo", { points: user?.points || 0 }) : `Your current balance: ${user?.points || 0} points. You can only transfer if you have more than 10 points.`}
+                      </p>
+                      <div className="space-y-2">
+                        <Label htmlFor="transfer-amount">{hasMounted ? t("amount") : "Amount to Transfer"}</Label>
+                        <Input
+                          id="transfer-amount"
+                          type="number"
+                          min="1"
+                          placeholder="Enter points amount"
+                        />
+                      </div>
+                      <Button
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                        onClick={async () => {
+                          const amountInput = document.getElementById("transfer-amount") as HTMLInputElement;
+                          const amount = parseInt(amountInput.value);
+                          if (!amount || amount <= 0) {
+                            toast.error(hasMounted ? t("enterValidAmount") : "Please enter a valid amount");
+                            return;
+                          }
+                          try {
+                            const res = await axiosInstance.post("/user/transfer-points", {
+                              amount,
+                              recipientId: id
+                            });
+                            toast.success(res.data.message);
+                            window.location.reload();
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.message || "Transfer failed");
+                          }
+                        }}
+                      >
+                        {hasMounted ? t("confirmTransfer") : "Confirm Transfer"}
+                      </Button>
                     </div>
                   </DialogContent>
                 </Dialog>
@@ -371,7 +545,7 @@ const index = () => {
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-1" />
-                Member since{" "}
+                {hasMounted ? t("memberSince") : "Member since"}{" "}
                 {new Date(users.joinDate).toISOString().split("T")[0]}
               </div>
             </div>
@@ -379,17 +553,17 @@ const index = () => {
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
                 <span className="font-semibold">5</span>
-                <span className="text-gray-600 ml-1">gold badges</span>
+                <span className="text-gray-600 ml-1">{hasMounted ? t("goldBadges") : "gold badges"}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
                 <span className="font-semibold">23</span>
-                <span className="text-gray-600 ml-1">silver badges</span>
+                <span className="text-gray-600 ml-1">{hasMounted ? t("silverBadges") : "silver badges"}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-amber-600 rounded-full mr-2"></div>
                 <span className="font-semibold">45</span>
-                <span className="text-gray-600 ml-1">bronze badges</span>
+                <span className="text-gray-600 ml-1">{hasMounted ? t("bronzeBadges") : "bronze badges"}</span>
               </div>
             </div>
           </div>
@@ -398,7 +572,7 @@ const index = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>About</CardTitle>
+                <CardTitle>{hasMounted ? t("aboutTitle") : "About"}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">
@@ -412,7 +586,7 @@ const index = () => {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Top Tags</CardTitle>
+                <CardTitle>{hasMounted ? t("topTags") : "Top Tags"}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -434,6 +608,32 @@ const index = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {isOwnProfile && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{hasMounted ? t("loginHistory") : "Login History"}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                    {users.loginHistory?.slice().reverse().map((history: any, index: number) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg text-sm border">
+                        <div className="flex justify-between font-semibold mb-1">
+                          <span>{history.browser} ({history.device})</span>
+                          <span className="text-gray-500 font-normal">{new Date(history.date).toLocaleString()}</span>
+                        </div>
+                        <div className="text-gray-600">
+                          OS: {history.os} | IP: {history.ip}
+                        </div>
+                      </div>
+                    ))}
+                    {!users.loginHistory?.length && (
+                      <p className="text-gray-500 text-center italic">{hasMounted ? t("noLoginHistory") : "No login history available."}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

@@ -1,17 +1,52 @@
 import mongoose from "mongoose";
 import question from "../models/question.js";
+import User from "../models/auth.js";
+
+const getPlanLimit = (plan) => {
+  switch (plan) {
+    case "Bronze": return 5;
+    case "Silver": return 10;
+    case "Gold": return Infinity;
+    default: return 1; // Free Plan
+  }
+};
 
 
 export const Askquestion = async (req, res) => {
   const { postquestiondata } = req.body;
-  const postques = new question({ ...postquestiondata });
+  const userid = req.userid;
+
   try {
+    const userDoc = await User.findById(userid);
+    if (!userDoc) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    const planLimit = getPlanLimit(userDoc.plan);
+
+    // Check if stats are for a different day, then reset
+    if (userDoc.dailyQuestionStats.date !== today) {
+      userDoc.dailyQuestionStats = { date: today, count: 0 };
+    }
+
+    if (userDoc.dailyQuestionStats.count >= planLimit) {
+      return res.status(403).json({
+        message: `Daily question limit reached for ${userDoc.plan} plan (${planLimit} questions). Please upgrade your plan for more postings.`
+      });
+    }
+
+    const postques = new question({ ...postquestiondata, userid: userid });
     await postques.save();
+
+    // Increment count
+    userDoc.dailyQuestionStats.count += 1;
+    await userDoc.save();
+
     res.status(200).json({ data: postques });
   } catch (error) {
     console.log(error);
-    res.status(500).json("something went wrong..");
-    return;
+    res.status(500).json({ message: "something went wrong.." });
   }
 };
 
@@ -40,7 +75,7 @@ export const deletequestion = async (req, res) => {
 };
 export const votequestion = async (req, res) => {
   const { id: _id } = req.params;
-  const { value ,userid} = req.body;
+  const { value, userid } = req.body;
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(400).json({ message: "question unavailable" });
   }
