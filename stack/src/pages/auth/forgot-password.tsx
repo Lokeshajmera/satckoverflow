@@ -28,7 +28,28 @@ const ForgotPassword = () => {
     const [newPassword, setNewPassword] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
-        // ... (keep logic same)
+        e.preventDefault();
+        if (!identifier.trim()) {
+            toast.error("Please enter your email or phone number.");
+            return;
+        }
+        setLoading(true);
+        try {
+            const res = await axiosInstance.post("/user/forgot-password", { identifier });
+            setNewPassword(res.data.newPassword);
+            toast.success("Password reset successful! Your new password is shown below.");
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || "Something went wrong. Please try again.";
+            if (err?.response?.status === 403) {
+                toast.warn(msg); // "You can use this option only one time per day."
+            } else if (err?.response?.status === 404) {
+                toast.error("No account found with that email or phone number.");
+            } else {
+                toast.error(msg);
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
