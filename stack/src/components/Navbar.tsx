@@ -53,7 +53,7 @@ const Navbar = ({ handleslidein }: any) => {
           <form className="hidden lg:block flex-grow relative px-3">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={hasMounted ? t("searchPlaceholder") : "Search..."}
               className="w-full max-w-[600px] pl-9 pr-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-300"
             />
             <Search className="absolute left-4 top-2.5 h-4 w-4 text-gray-600" />
@@ -84,10 +84,10 @@ const Navbar = ({ handleslidein }: any) => {
                     user.plan === "Bronze" ? "bg-orange-100 text-orange-800 border-orange-300" :
                       "bg-blue-50 text-blue-600 border-blue-200"
                   } border`}>
-                  {user.plan || "Free"} Plan
+                  {hasMounted ? t(user.plan || "Free") : (user.plan || "Free")} {hasMounted ? t("planDisplay") : "Plan"}
                 </span>
                 <span className="text-[10px] font-bold text-orange-600 mt-0.5">
-                  {(user.points || 0).toLocaleString()} reputation
+                  {(user.points || 0).toLocaleString()} {hasMounted ? t("reputation") : "reputation"}
                 </span>
               </div>
 

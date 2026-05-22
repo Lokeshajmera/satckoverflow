@@ -23,13 +23,13 @@ const RightSideBar = () => {
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">✏️</span>
               <Link href="/articles" className="text-gray-700 hover:text-blue-600 transition-colors">
-                A new era of Stack Overflow
+                {hasMounted ? t("blogPost1") : "A new era of Stack Overflow"}
               </Link>
             </li>
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">✏️</span>
               <Link href="/articles" className="text-gray-700 hover:text-blue-600 transition-colors">
-                How your favorite movie is changing language learning technology
+                {hasMounted ? t("blogPost2") : "How your favorite movie is changing language learning technology"}
               </Link>
             </li>
           </ul>
@@ -43,19 +43,19 @@ const RightSideBar = () => {
             <li className="flex items-start">
               <span className="text-blue-500 mr-2">💬</span>
               <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
-                Results of the June 2025 Community Asks Sprint
+                {hasMounted ? t("metaPost1") : "Results of the June 2025 Community Asks Sprint"}
               </Link>
             </li>
             <li className="flex items-start">
               <span className="text-blue-500 mr-2">💬</span>
               <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
-                Will you help build our new visual identity?
+                {hasMounted ? t("metaPost2") : "Will you help build our new visual identity?"}
               </Link>
             </li>
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">📋</span>
               <Link href="/ai-assist" className="text-gray-700 hover:text-blue-600 transition-colors">
-                Policy: Generative AI (e.g., ChatGPT) is banned
+                {hasMounted ? t("metaPost3") : "Policy: Generative AI (e.g., ChatGPT) is banned"}
               </Link>
             </li>
           </ul>
@@ -71,7 +71,7 @@ const RightSideBar = () => {
               size="sm"
               className="w-full text-blue-600 border-blue-600 hover:bg-blue-50 bg-transparent text-xs lg:text-sm"
             >
-              Create a custom filter
+              {hasMounted ? t("createCustomFilterButton") : "Create a custom filter"}
             </Button>
           </Link>
         </div>
@@ -84,7 +84,7 @@ const RightSideBar = () => {
             <div className="text-center">
               <Eye className="w-10 h-10 lg:w-12 lg:h-12 text-gray-300 mx-auto mb-2" />
               <p className="text-xs lg:text-sm text-gray-500 mb-3">
-                Watch tags to curate your list of questions.
+                {hasMounted ? t("watchTagsDescription") : "Watch tags to curate your list of questions."}
               </p>
               <Link href="/tags">
                 <Button

@@ -82,7 +82,7 @@ export default function Home() {
                 {hasMounted ? t("active") : "Active"}
               </button>
               <button className="px-2 sm:px-3 py-1 text-gray-600 hover:bg-gray-100 rounded flex items-center text-xs sm:text-sm">
-                Bountied
+                {hasMounted ? t("bountied") : "Bountied"}
                 <Badge variant="secondary" className="ml-1 text-xs">
                   25
                 </Badge>
@@ -91,7 +91,7 @@ export default function Home() {
                 {hasMounted ? t("unanswered") : "Unanswered"}
               </button>
               <button className="px-2 sm:px-3 py-1 text-gray-600 hover:bg-gray-100 rounded text-xs sm:text-sm">
-                More ▼
+                {hasMounted ? t("more") : "More"} ▼
               </button>
               <button className="px-2 sm:px-3 py-1 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded ml-auto text-xs sm:text-sm">
                 🔍 {hasMounted ? t("filter") : "Filter"}
@@ -165,7 +165,7 @@ export default function Home() {
                           </span>
                         </Link>
 
-                        <span>asked {new Date(question.askedon).toLocaleDateString()}</span>
+                        <span>{hasMounted ? t("asked") : "asked"} {new Date(question.askedon).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>

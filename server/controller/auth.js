@@ -225,11 +225,14 @@ export const updateprofile = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(400).json({ message: "User unavailable" });
   }
+  if (!name || name.trim() === "") {
+    return res.status(400).json({ message: "Name is required" });
+  }
   try {
     const updateprofile = await user.findByIdAndUpdate(
       _id,
       { $set: { name: name, about: about, tags: tags, phoneNumber: phoneNumber } },
-      { new: true }
+      { new: true, runValidators: true }
     );
     res.status(200).json({ data: updateprofile });
   } catch (error) {
@@ -340,23 +343,28 @@ export const transferPoints = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (sender.points <= 10) {
+    // Normalize: old documents may have null points
+    const senderPoints = Number(sender.points) || 0;
+    const recipientPoints = Number(recipient.points) || 0;
+
+    if (senderPoints <= 10) {
       return res.status(403).json({ message: "You need more than 10 points to transfer points" });
     }
 
-    if (sender.points < numAmount) {
+    if (senderPoints < numAmount) {
       return res.status(400).json({ message: "Insufficient points" });
     }
 
-    sender.points -= numAmount;
-    recipient.points += numAmount;
+    sender.points = senderPoints - numAmount;
+    recipient.points = recipientPoints + numAmount;
 
     await sender.save();
     await recipient.save();
 
     res.status(200).json({ message: "Points transferred successfully", senderPoints: sender.points });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Transfer Points Error:", error.message, error.stack);
+    res.status(500).json({ message: "Internal Server Error: " + error.message });
   }
 };
+

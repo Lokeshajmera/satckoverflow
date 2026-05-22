@@ -61,7 +61,7 @@ const Sidebar = ({ isopen }: any) => {
                 className="flex items-center px-2 py-2 text-yellow-700 hover:bg-yellow-50 rounded text-sm font-semibold"
               >
                 <Trophy className="w-4 h-4 mr-2 lg:mr-3 text-yellow-500" />
-                Leaderboard
+                {hasMounted ? t("leaderboard") : "Leaderboard"}
                 <Badge variant="secondary" className="ml-auto text-xs bg-yellow-100 text-yellow-800">🏆</Badge>
               </Link>
             </li>

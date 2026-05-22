@@ -60,6 +60,17 @@ const index = () => {
     tags: users?.tags || [],
     phoneNumber: users?.phoneNumber || "",
   });
+
+  useEffect(() => {
+    if (users) {
+      setEditForm({
+        name: users.name || "",
+        about: users.about || "",
+        tags: users.tags || [],
+        phoneNumber: users.phoneNumber || "",
+      });
+    }
+  }, [users]);
   const [newTag, setNewTag] = useState("");
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
