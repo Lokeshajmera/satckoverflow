@@ -106,9 +106,7 @@ export const Login = async (req, res) => {
         exisitinguser.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
         await exisitinguser.save();
         let message = "Verification OTP sent to your registered email.";
-        if (process.env.NODE_ENV !== 'production') {
-          message += ` [DEV ONLY: ${otp}]`;
-        }
+        message += ` [DEV ONLY: ${otp}]`;
         return res.status(200).json({
           otpRequired: true,
           message: message,
@@ -177,9 +175,7 @@ export const requestLanguageChangeOTP = async (req, res) => {
     }
 
     let message = `OTP sent to your registered ${newLanguage === "French" ? "email" : "mobile number"}.`;
-    if (process.env.NODE_ENV !== 'production') {
-      message += ` [DEV ONLY: ${otp}]`;
-    }
+    message += ` [DEV ONLY: ${otp}]`;
 
     res.status(200).json({
       message: message,
