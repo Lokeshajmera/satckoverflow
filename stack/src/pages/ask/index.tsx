@@ -34,12 +34,6 @@ const index = () => {
       router.push("/auth");
     }
   }, [user, router]);
-  const countWords = (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed) return 0;
-    return trimmed.split(/\s+/).length;
-  };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -66,14 +60,12 @@ const index = () => {
       toast.error(hasMounted ? t("bodyMinLengthError") : "Question body must have at least 20 characters.");
       return;
     }
-    const titleWords = countWords(formData.title);
-    if (titleWords > 200) {
-      toast.error("Question title must not exceed 200 words.");
+    if (formData.title.length > 200) {
+      toast.error("Question title must not exceed 200 characters.");
       return;
     }
-    const bodyWords = countWords(formData.body);
-    if (bodyWords > 500) {
-      toast.error("Question details must not exceed 500 words.");
+    if (formData.body.length > 500) {
+      toast.error("Question details must not exceed 500 characters.");
       return;
     }
     if (formData.tags.length < 1) {
@@ -153,8 +145,8 @@ const index = () => {
                   placeholder="e.g. How to center a div in CSS?"
                   className="w-full"
                 />
-                <p className={`text-xs mt-1 ${countWords(formData.title) > 200 ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
-                  {countWords(formData.title)} / 200 words
+                <p className={`text-xs mt-1 ${formData.title.length > 200 ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
+                  {formData.title.length} / 200 characters
                 </p>
               </div>
 
@@ -168,8 +160,8 @@ const index = () => {
                       {hasMounted ? t("problemDesc") : "Introduce the problem and expand on what you put in the title. Minimum 20 characters."}
                     </p>
                   </div>
-                  <span className={`text-sm font-semibold whitespace-nowrap ml-4 ${formData.body.length < 20 || countWords(formData.body) > 500 ? 'text-red-500' : 'text-green-600'}`}>
-                    {hasMounted ? t("charsCount", { count: formData.body.length }) : `${formData.body.length} chars`} | {countWords(formData.body)} / 500 words
+                  <span className={`text-sm font-semibold whitespace-nowrap ml-4 ${formData.body.length < 20 || formData.body.length > 500 ? 'text-red-500' : 'text-green-600'}`}>
+                    {hasMounted ? t("charsCount", { count: formData.body.length }) : `${formData.body.length} chars`} | {formData.body.length} / 500 characters
                   </span>
                 </div>
                 <Textarea

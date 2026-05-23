@@ -22,19 +22,13 @@ export const Askquestion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Word limits validation
-    const countWords = (text) => {
-      const trimmed = (text || "").trim();
-      if (!trimmed) return 0;
-      return trimmed.split(/\s+/).length;
-    };
-
-    if (countWords(postquestiondata.questiontitle) > 200) {
-      return res.status(400).json({ message: "Question title must not exceed 200 words." });
+    // Character limits validation (letters including spaces)
+    if ((postquestiondata.questiontitle || "").length > 200) {
+      return res.status(400).json({ message: "Question title must not exceed 200 characters." });
     }
 
-    if (countWords(postquestiondata.questionbody) > 500) {
-      return res.status(400).json({ message: "Question details must not exceed 500 words." });
+    if ((postquestiondata.questionbody || "").length > 500) {
+      return res.status(400).json({ message: "Question details must not exceed 500 characters." });
     }
 
     // Tags count validation
