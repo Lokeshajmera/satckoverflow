@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Trash } from "lucide-react";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -150,22 +151,43 @@ export default function Home() {
                         ))}
                       </div>
 
-                      <div className="flex items-center text-xs text-gray-600 flex-shrink-0">
-                        <Link
-                          href={`/users/${question.userid}`}
-                          className="flex items-center"
-                        >
-                          <Avatar className="w-4 h-4 mr-1">
-                            <AvatarFallback className="text-xs">
-                              {question.userposted[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-blue-600 hover:text-blue-800 mr-1">
-                            {question.userposted}
-                          </span>
-                        </Link>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        {user?._id === question.userid && (
+                          <button
+                            onClick={async () => {
+                              if (window.confirm("Are you sure you want to delete this question?")) {
+                                try {
+                                  await axiosInstance.delete(`/question/delete/${question._id}`);
+                                  setquestion((prev: any) => prev.filter((q: any) => q._id !== question._id));
+                                  toast.success("Question deleted successfully!");
+                                } catch (error) {
+                                  toast.error("Failed to delete question");
+                                }
+                              }
+                            }}
+                            className="flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded text-xs font-semibold transition"
+                          >
+                            <Trash className="w-3.5 h-3.5" />
+                            Delete
+                          </button>
+                        )}
+                        <div className="flex items-center text-xs text-gray-600">
+                          <Link
+                            href={`/users/${question.userid}`}
+                            className="flex items-center"
+                          >
+                            <Avatar className="w-4 h-4 mr-1">
+                              <AvatarFallback className="text-xs">
+                                {question.userposted[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-blue-600 hover:text-blue-800 mr-1">
+                              {question.userposted}
+                            </span>
+                          </Link>
 
-                        <span>{hasMounted ? t("asked") : "asked"} {new Date(question.askedon).toLocaleDateString()}</span>
+                          <span>{hasMounted ? t("asked") : "asked"} {new Date(question.askedon).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
