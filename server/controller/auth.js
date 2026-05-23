@@ -100,18 +100,21 @@ export const Login = async (req, res) => {
     // 2. Google Chrome Exception (Require Email OTP)
     if (browser === "Google Chrome") {
       const otp = generateOTP();
-      const emailSent = await sendEmailOTP(exisitinguser.email, otp);
-      if (emailSent) {
-        exisitinguser.otp = otp;
-        exisitinguser.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-        await exisitinguser.save();
-        let message = "Verification OTP sent to your registered email.";
-        message += ` [DEV ONLY: ${otp}]`;
-        return res.status(200).json({
-          otpRequired: true,
-          message: message,
-        });
-      }
+      exisitinguser.otp = otp;
+      exisitinguser.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+      await exisitinguser.save();
+
+      // Trigger email sending in the background asynchronously so the client doesn't wait
+      sendEmailOTP(exisitinguser.email, otp).catch((err) => {
+        console.error("Async email send failed:", err);
+      });
+
+      let message = "Verification OTP sent to your registered email.";
+      message += ` [DEV ONLY: ${otp}]`;
+      return res.status(200).json({
+        otpRequired: true,
+        message: message,
+      });
     }
 
     // 3. Microsoft Browser Access (Allowed without additional auth)

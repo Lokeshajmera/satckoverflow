@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { Signup, loading } = useAuth();
   const [form, setform] = useState({ name: "", email: "", password: "", phoneNumber: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const isPasswordValid = (password: string) => {
     return password.length >= 8 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
@@ -164,12 +166,26 @@ export default function SignUpPage() {
                 <Label htmlFor="password" className="text-sm">
                   Password
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
                 <p className={`text-xs ${form.password && !isPasswordValid(form.password) ? "text-red-500 font-medium" : "text-gray-600"}`}>
                   Passwords must contain at least eight characters, including at
                   least 1 letter and 1 number.

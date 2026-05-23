@@ -149,7 +149,7 @@
   "charsCount": "{{count}} / 20+ अक्षर",
   "tagsLabelCount": "टैग ({{count}}/5)",
   "tagsInputDesc": "अपने प्रश्न का वर्णन करने के लिए 5 टैग तक जोड़ें।",
-  "reviewQuestion": "अपना प्रश्न समीक्षा करें",
+  "reviewQuestion": "अपना प्रश्न पोस्ट करें",
   "bodyMinLengthError": "प्रश्न का मुख्य भाग कम से कम 20 अक्षरों का होना चाहिए।",
   "exactTagsError": "आपको 1 से 5 टैग जोड़ने होंगे।",
   "questionPostedSuccess": "प्रश्न सफलतापूर्वक पोस्ट किया गया",

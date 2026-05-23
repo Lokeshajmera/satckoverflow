@@ -149,7 +149,7 @@
   "charsCount": "{{count}} / 20+ 字符",
   "tagsLabelCount": "标签 ({{count}}/5)",
   "tagsInputDesc": "添加最多5个标签来描述您的问题。",
-  "reviewQuestion": "审查您的问题",
+  "reviewQuestion": "发布你的问题",
   "bodyMinLengthError": "问题正文必须至少有20个字符。",
   "exactTagsError": "您必须添加1到5个标签。",
   "questionPostedSuccess": "问题发布成功",

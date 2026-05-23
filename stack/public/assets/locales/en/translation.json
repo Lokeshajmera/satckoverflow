@@ -130,7 +130,7 @@
   "charsCount": "{{count}} / 20+ chars",
   "tagsLabelCount": "Tags ({{count}}/5)",
   "tagsInputDesc": "Add up to 5 tags to describe what your question is about.",
-  "reviewQuestion": "Review your question",
+  "reviewQuestion": "Post your question",
   "bodyMinLengthError": "Question body must have at least 20 characters.",
   "exactTagsError": "You must add between 1 and 5 tags.",
   "questionPostedSuccess": "Question posted successfully",

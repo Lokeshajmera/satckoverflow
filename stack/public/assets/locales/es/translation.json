@@ -149,7 +149,7 @@
   "charsCount": "{{count}} / 20+ caracteres",
   "tagsLabelCount": "Etiquetas ({{count}}/5)",
   "tagsInputDesc": "Agrega hasta 5 etiquetas para describir de qué trata tu pregunta.",
-  "reviewQuestion": "Revisa tu pregunta",
+  "reviewQuestion": "Publica tu pregunta",
   "bodyMinLengthError": "El cuerpo de la pregunta debe tener al menos 20 caracteres.",
   "exactTagsError": "Debes agregar entre 1 y 5 etiquetas.",
   "questionPostedSuccess": "Pregunta publicada exitosamente",
