@@ -101,13 +101,7 @@ export default function Questions() {
       </Mainlayout>
     );
   }
-  if (!question || question.length === 0) {
-    return (
-      <Mainlayout>
-        <div className="text-center text-gray-500 mt-4">No question found.</div>
-      </Mainlayout>
-    );
-  }
+
 
   return (
     <Mainlayout>
@@ -156,8 +150,13 @@ export default function Questions() {
             </div>
           </div>
           <div className="space-y-4">
-            {question.map((question: any) => (
-              <div key={question._id} className="border-b border-gray-200 pb-4">
+            {!question || question.length === 0 ? (
+              <div className="text-center text-gray-500 mt-8 py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                {hasMounted ? t("noQuestionFound") : "No questions found."}
+              </div>
+            ) : (
+              question.map((question: any) => (
+                <div key={question._id} className="border-b border-gray-200 pb-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex sm:flex-col items-center sm:items-center text-sm text-gray-600 sm:w-16 lg:w-20 gap-4 sm:gap-2">
                     <div className="text-center">
@@ -250,7 +249,8 @@ export default function Questions() {
                   </div>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </main>

@@ -132,6 +132,7 @@ const Sidebar = ({ isopen }: any) => {
                 href="/challenges"
                 className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
               >
+                <Trophy className="w-4 h-4 mr-2 lg:mr-3 text-gray-500" />
                 {hasMounted ? t("challengesTitle") : "Challenges"}
               </Link>
             </li>
