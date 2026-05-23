@@ -13,11 +13,11 @@ import {
   Users,
   Users2,
   CreditCard,
+  Plus,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import React from "react";
-import { Badge } from "./ui/badge";
 
 const Sidebar = ({ isopen }: any) => {
   const { t } = useTranslation();
@@ -49,20 +49,28 @@ const Sidebar = ({ isopen }: any) => {
             <li>
               <Link
                 href="/questions"
-                className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
+                className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm font-semibold"
               >
                 <MessageSquareIcon className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("questions") : "Questions"}
               </Link>
+              {/* Nested Ask Question button inside Questions Section */}
+              <div className="pl-6 pr-2 py-1">
+                <Link
+                  href="/ask"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 hover:text-orange-800 rounded-md text-xs font-bold transition-all shadow-sm border border-orange-100"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {hasMounted ? t("askQuestion") : "Ask Question"}
+                </Link>
+              </div>
             </li>
             <li>
               <Link
                 href="/leaderboard"
-                className="flex items-center px-2 py-2 text-yellow-700 hover:bg-yellow-50 rounded text-sm font-semibold"
+                className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
               >
-                <Trophy className="w-4 h-4 mr-2 lg:mr-3 text-yellow-500" />
                 {hasMounted ? t("leaderboard") : "Leaderboard"}
-                <Badge variant="secondary" className="ml-auto text-xs bg-yellow-100 text-yellow-800">🏆</Badge>
               </Link>
             </li>
             <li>
@@ -72,9 +80,6 @@ const Sidebar = ({ isopen }: any) => {
               >
                 <Bot className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("aiAssistTitle") : "AI Assist"}
-                <Badge variant="secondary" className="ml-auto text-xs">
-                  {hasMounted ? t("labs") : "Labs"}
-                </Badge>
               </Link>
             </li>
             <li>
@@ -102,9 +107,6 @@ const Sidebar = ({ isopen }: any) => {
               >
                 <Globe className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("socialFeed") : "Social Feed"}
-                <Badge variant="secondary" className="ml-auto text-xs bg-blue-100 text-blue-800">
-                  {hasMounted ? t("new") : "NEW"}
-                </Badge>
               </Link>
             </li>
             <li>
@@ -139,14 +141,7 @@ const Sidebar = ({ isopen }: any) => {
                 href="/challenges"
                 className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
               >
-                <Trophy className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("challengesTitle") : "Challenges"}
-                <Badge
-                  variant="secondary"
-                  className="ml-auto text-xs bg-orange-100 text-orange-800"
-                >
-                  {hasMounted ? t("new") : "NEW"}
-                </Badge>
               </Link>
             </li>
             <li>
