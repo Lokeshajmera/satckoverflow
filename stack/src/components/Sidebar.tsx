@@ -58,9 +58,11 @@ const Sidebar = ({ isopen }: any) => {
             <li>
               <Link
                 href="/leaderboard"
-                className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
+                className="flex items-center px-2 py-2 text-yellow-700 hover:bg-yellow-50 rounded text-sm font-semibold"
               >
+                <Trophy className="w-4 h-4 mr-2 lg:mr-3 text-yellow-500" />
                 {hasMounted ? t("leaderboard") : "Leaderboard"}
+                <Badge variant="secondary" className="ml-auto text-xs bg-yellow-100 text-yellow-800">🏆</Badge>
               </Link>
             </li>
             <li>
@@ -70,6 +72,9 @@ const Sidebar = ({ isopen }: any) => {
               >
                 <Bot className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("aiAssistTitle") : "AI Assist"}
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {hasMounted ? t("labs") : "Labs"}
+                </Badge>
               </Link>
             </li>
             <li>
@@ -97,6 +102,9 @@ const Sidebar = ({ isopen }: any) => {
               >
                 <Globe className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("socialFeed") : "Social Feed"}
+                <Badge variant="secondary" className="ml-auto text-xs bg-blue-100 text-blue-800">
+                  {hasMounted ? t("new") : "NEW"}
+                </Badge>
               </Link>
             </li>
             <li>
@@ -131,7 +139,14 @@ const Sidebar = ({ isopen }: any) => {
                 href="/challenges"
                 className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
               >
+                <Trophy className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("challengesTitle") : "Challenges"}
+                <Badge
+                  variant="secondary"
+                  className="ml-auto text-xs bg-orange-100 text-orange-800"
+                >
+                  {hasMounted ? t("new") : "NEW"}
+                </Badge>
               </Link>
             </li>
             <li>
