@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Trash } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const questions = [
   {
@@ -71,10 +72,15 @@ const questions = [
   },
 ];
 export default function Questions() {
+  const { t } = useTranslation();
+  const [hasMounted, setHasMounted] = useState(false);
   const [question, setquestion] = useState<any>(null);
   const [loading, setloading] = useState(true);
   const router = useRouter();
   const { user } = useAuth();
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   useEffect(() => {
     const fetchquestion = async () => {
       try {
@@ -107,7 +113,7 @@ export default function Questions() {
     <Mainlayout>
       <main className="min-w-0 p-4 lg:p-6 ">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-xl lg:text-2xl font-semibold">All Questions</h1>
+          <h1 className="text-xl lg:text-2xl font-semibold">{hasMounted ? t("questions") : "All Questions"}</h1>
           <button
             onClick={() => {
               if (!user) {
@@ -119,7 +125,7 @@ export default function Questions() {
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium whitespace-nowrap"
           >
-            Ask Question
+            {hasMounted ? t("askQuestion") : "Ask Question"}
           </button>
         </div>
         <div className="w-full">
