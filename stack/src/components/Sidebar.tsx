@@ -13,6 +13,7 @@ import {
   Users,
   Users2,
   CreditCard,
+  Plus,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
@@ -49,11 +50,21 @@ const Sidebar = ({ isopen }: any) => {
             <li>
               <Link
                 href="/questions"
-                className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm"
+                className="flex items-center px-2 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm font-semibold"
               >
                 <MessageSquareIcon className="w-4 h-4 mr-2 lg:mr-3" />
                 {hasMounted ? t("questions") : "Questions"}
               </Link>
+              {/* Nested Ask Question button inside Questions Section */}
+              <div className="pl-6 pr-2 py-1">
+                <Link
+                  href="/ask"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 hover:text-orange-800 rounded-md text-xs font-bold transition-all shadow-sm border border-orange-100"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {hasMounted ? t("askQuestion") : "Ask Question"}
+                </Link>
+              </div>
             </li>
             <li>
               <Link
