@@ -1,4 +1,5 @@
 import Friendship from "../models/friendship.js";
+import User from "../models/auth.js";
 
 // SEND FRIEND REQUEST
 export const sendFriendRequest = async (req, res) => {
@@ -53,7 +54,25 @@ export const getFriends = async (req, res) => {
       $or: [{ requester: userid }, { recipient: userid }],
       status: "accepted",
     });
-    res.status(200).json({ data: friendships });
+
+    const userIds = friendships.map(f => f.requester === userid ? f.recipient : f.requester);
+    const users = await User.find({ _id: { $in: userIds } }, "name about");
+    const userMap = users.reduce((map, u) => {
+      map[u._id.toString()] = u;
+      return map;
+    }, {});
+
+    const data = friendships.map(f => {
+      const friendId = f.requester === userid ? f.recipient : f.requester;
+      const u = userMap[friendId];
+      return {
+        ...f.toObject(),
+        friendName: u ? u.name : "Unknown User",
+        friendAbout: u ? u.about : "",
+      };
+    });
+
+    res.status(200).json({ data });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
   }
@@ -64,7 +83,24 @@ export const getPendingRequests = async (req, res) => {
   const { userid } = req.params;
   try {
     const pending = await Friendship.find({ recipient: userid, status: "pending" });
-    res.status(200).json({ data: pending });
+
+    const requesterIds = pending.map(f => f.requester);
+    const users = await User.find({ _id: { $in: requesterIds } }, "name about");
+    const userMap = users.reduce((map, u) => {
+      map[u._id.toString()] = u;
+      return map;
+    }, {});
+
+    const data = pending.map(f => {
+      const u = userMap[f.requester];
+      return {
+        ...f.toObject(),
+        requesterName: u ? u.name : "Unknown User",
+        requesterAbout: u ? u.about : "",
+      };
+    });
+
+    res.status(200).json({ data });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
   }
@@ -77,7 +113,30 @@ export const getAllFriendships = async (req, res) => {
     const all = await Friendship.find({
       $or: [{ requester: userid }, { recipient: userid }],
     });
-    res.status(200).json({ data: all });
+
+    const userIds = [];
+    all.forEach(f => {
+      if (f.requester !== userid) userIds.push(f.requester);
+      if (f.recipient !== userid) userIds.push(f.recipient);
+    });
+
+    const users = await User.find({ _id: { $in: userIds } }, "name about");
+    const userMap = users.reduce((map, u) => {
+      map[u._id.toString()] = u;
+      return map;
+    }, {});
+
+    const data = all.map(f => {
+      const requesterUser = userMap[f.requester];
+      const recipientUser = userMap[f.recipient];
+      return {
+        ...f.toObject(),
+        requesterName: requesterUser ? requesterUser.name : "Unknown User",
+        recipientName: recipientUser ? recipientUser.name : "Unknown User",
+      };
+    });
+
+    res.status(200).json({ data });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
   }

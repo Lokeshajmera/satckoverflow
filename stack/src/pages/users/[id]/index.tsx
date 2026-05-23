@@ -15,8 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import Mainlayout from "@/layout/Mainlayout";
 import { useAuth } from "@/lib/AuthContext";
 import axiosInstance from "@/lib/axiosinstance";
-import { Calendar, Edit, Plus, X, Share } from "lucide-react";
+import { Calendar, Edit, Plus, X, Share, Trash } from "lucide-react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
@@ -81,14 +82,20 @@ const index = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [transferRecipient, setTransferRecipient] = useState<any>(null);
+  const [userQuestions, setUserQuestions] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchuser = async () => {
       try {
-        const res = await axiosInstance.get("/user/getalluser");
-        setAllUsers(res.data.data);
-        const matcheduser = res.data.data.find((u: any) => u._id === id);
+        const [usersRes, questionsRes] = await Promise.all([
+          axiosInstance.get("/user/getalluser"),
+          axiosInstance.get("/question/getallquestion")
+        ]);
+        setAllUsers(usersRes.data.data);
+        const matcheduser = usersRes.data.data.find((u: any) => u._id === id);
         setusers(matcheduser);
+        const matchedQuestions = (questionsRes.data.data || []).filter((q: any) => q.userid === id);
+        setUserQuestions(matchedQuestions);
       } catch (error) {
         console.log(error);
       } finally {
@@ -591,6 +598,56 @@ const index = () => {
                     {users.about}
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{hasMounted ? t("questionsAsked") : "Questions Asked"} ({userQuestions.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {userQuestions.length === 0 ? (
+                  <p className="text-gray-500 italic text-sm">{hasMounted ? t("noQuestionsAsked") : "No questions asked yet."}</p>
+                ) : (
+                  <div className="space-y-4">
+                    {userQuestions.map((q) => (
+                      <div key={q._id} className="flex justify-between items-start gap-4 pb-3 border-b last:border-b-0 last:pb-0">
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/questions/${q._id}`} className="text-blue-600 hover:text-blue-800 hover:underline font-medium block truncate">
+                            {q.questiontitle}
+                          </Link>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                            <span>Asked: {new Date(q.askedon).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>Votes: {q.upvote.length - q.downvote.length}</span>
+                            <span>•</span>
+                            <span>Answers: {q.noofanswer}</span>
+                          </div>
+                        </div>
+                        {isOwnProfile && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              if (window.confirm("Are you sure you want to delete this question?")) {
+                                try {
+                                  await axiosInstance.delete(`/question/delete/${q._id}`);
+                                  setUserQuestions(prev => prev.filter(item => item._id !== q._id));
+                                  toast.success("Question deleted successfully!");
+                                } catch (error) {
+                                  toast.error("Failed to delete question");
+                                }
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 h-auto"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

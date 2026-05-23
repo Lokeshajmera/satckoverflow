@@ -132,7 +132,7 @@ const sendInvoiceEmail = async (email, name, planName, amount, paymentId) => {
             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">1 Month</td>
           </tr>
         </table>
-        <p style="margin-top: 20px;">You can now enjoy increased daily question posting limits based on your plan.</p>
+        <p style="margin-top: 20px;">You can now enjoy increased daily post limits based on your plan.</p>
         <p style="text-align: center; color: #888; font-size: 12px; margin-top: 30px;">
           &copy; 2026 CodeQuest Inc. All rights reserved.
         </p>

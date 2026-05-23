@@ -34,6 +34,12 @@ const index = () => {
       router.push("/auth");
     }
   }, [user, router]);
+  const countWords = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -48,6 +54,7 @@ const index = () => {
       setFormData((prev) => ({ ...prev, [id]: value }));
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -59,8 +66,22 @@ const index = () => {
       toast.error(hasMounted ? t("bodyMinLengthError") : "Question body must have at least 20 characters.");
       return;
     }
-    if (formData.tags.length !== 5) {
-      toast.error(hasMounted ? t("exactTagsError") : "You must add exactly 5 tags.");
+    const titleWords = countWords(formData.title);
+    if (titleWords > 200) {
+      toast.error("Question title must not exceed 200 words.");
+      return;
+    }
+    const bodyWords = countWords(formData.body);
+    if (bodyWords > 500) {
+      toast.error("Question details must not exceed 500 words.");
+      return;
+    }
+    if (formData.tags.length < 1) {
+      toast.error(hasMounted ? t("exactTagsError") : "At least one tag is required.");
+      return;
+    }
+    if (formData.tags.length > 5) {
+      toast.error("You can add up to 5 tags.");
       return;
     }
     try {
@@ -132,6 +153,9 @@ const index = () => {
                   placeholder="e.g. How to center a div in CSS?"
                   className="w-full"
                 />
+                <p className={`text-xs mt-1 ${countWords(formData.title) > 200 ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
+                  {countWords(formData.title)} / 200 words
+                </p>
               </div>
 
               <div>
@@ -144,8 +168,8 @@ const index = () => {
                       {hasMounted ? t("problemDesc") : "Introduce the problem and expand on what you put in the title. Minimum 20 characters."}
                     </p>
                   </div>
-                  <span className={`text-sm font-semibold whitespace-nowrap ml-4 ${formData.body.length < 20 ? 'text-red-500' : 'text-green-600'}`}>
-                    {hasMounted ? t("charsCount", { count: formData.body.length }) : `${formData.body.length} / 20+ chars`}
+                  <span className={`text-sm font-semibold whitespace-nowrap ml-4 ${formData.body.length < 20 || countWords(formData.body) > 500 ? 'text-red-500' : 'text-green-600'}`}>
+                    {hasMounted ? t("charsCount", { count: formData.body.length }) : `${formData.body.length} chars`} | {countWords(formData.body)} / 500 words
                   </span>
                 </div>
                 <Textarea
@@ -158,10 +182,10 @@ const index = () => {
               </div>
               <div>
                 <Label htmlFor="tags" className="text-base font-semibold">
-                  {hasMounted ? t("tagsLabelCount", { count: formData.tags.length }) : `Tags (${formData.tags.length}/5)`}
+                  {hasMounted ? t("tagsLabelCount", { count: formData.tags.length }) : `Tags (${formData.tags.length})`}
                 </Label>
                 <p className="text-sm text-gray-600 mb-2">
-                  {hasMounted ? t("tagsInputDesc") : "Add exactly 5 tags to describe what your question is about."}
+                  {hasMounted ? t("tagsInputDesc") : "Add at least 1 tag (up to 5) to describe what your question is about."}
                 </p>
                 <div className="flex gap-2">
                   <Input

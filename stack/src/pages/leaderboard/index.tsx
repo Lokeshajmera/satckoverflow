@@ -32,7 +32,7 @@ export default function Leaderboard() {
     const [tab, setTab] = useState<"points" | "reputation">("points");
 
     useEffect(() => {
-        axiosInstance.get("/auth/getalluser")
+        axiosInstance.get("/user/getalluser")
             .then((res) => {
                 setUsers(res.data.data || []);
             })

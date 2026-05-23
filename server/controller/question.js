@@ -22,6 +22,29 @@ export const Askquestion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Word limits validation
+    const countWords = (text) => {
+      const trimmed = (text || "").trim();
+      if (!trimmed) return 0;
+      return trimmed.split(/\s+/).length;
+    };
+
+    if (countWords(postquestiondata.questiontitle) > 200) {
+      return res.status(400).json({ message: "Question title must not exceed 200 words." });
+    }
+
+    if (countWords(postquestiondata.questionbody) > 500) {
+      return res.status(400).json({ message: "Question details must not exceed 500 words." });
+    }
+
+    // Tags count validation
+    if (!postquestiondata.questiontags || !Array.isArray(postquestiondata.questiontags) || postquestiondata.questiontags.length < 1) {
+      return res.status(400).json({ message: "At least one tag is required." });
+    }
+    if (postquestiondata.questiontags.length > 5) {
+      return res.status(400).json({ message: "You can add up to 5 tags." });
+    }
+
     const today = new Date().toISOString().split("T")[0];
     const planLimit = getPlanLimit(userDoc.plan);
 
@@ -32,7 +55,7 @@ export const Askquestion = async (req, res) => {
 
     if (userDoc.dailyQuestionStats.count >= planLimit) {
       return res.status(403).json({
-        message: `Daily question limit reached for ${userDoc.plan} plan (${planLimit} questions). Please upgrade your plan for more postings.`
+        message: `Daily post limit reached for ${userDoc.plan} plan (${planLimit} posts). Please upgrade your plan for more postings.`
       });
     }
 

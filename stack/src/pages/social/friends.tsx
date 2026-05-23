@@ -165,14 +165,15 @@ export default function FriendsPage() {
                 <div className="space-y-2">
                   {pending.map((f) => {
                     const requesterUser = allUsers.find((u) => u._id === f.requester);
+                    const displayName = requesterUser?.name || (f as any).requesterName || "Unknown";
                     return (
                       <div key={f._id} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                            {(requesterUser?.name || f.requester)[0].toUpperCase()}
+                            {displayName[0].toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-800">{requesterUser?.name || "Unknown"}</p>
+                            <p className="font-medium text-gray-800">{displayName}</p>
                             <p className="text-xs text-gray-400">sent you a friend request</p>
                           </div>
                         </div>
@@ -210,14 +211,15 @@ export default function FriendsPage() {
                   {friends.map((f) => {
                     const friendId = f.requester === user._id ? f.recipient : f.requester;
                     const friendUser = allUsers.find((u) => u._id === friendId);
+                    const displayName = friendUser?.name || (f as any).friendName || "Unknown";
                     return (
                       <div key={f._id} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold">
-                          {(friendUser?.name || "?")[0].toUpperCase()}
+                          {displayName[0].toUpperCase()}
                         </div>
                         <div>
                           <Link href={`/users/${friendId}`} className="font-medium text-gray-800 hover:text-blue-600">
-                            {friendUser?.name || "Unknown"}
+                            {displayName}
                           </Link>
                           <div className="flex items-center gap-1 text-xs text-green-600">
                             <UserCheck className="w-3 h-3" />

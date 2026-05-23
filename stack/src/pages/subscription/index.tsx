@@ -6,46 +6,7 @@ import axiosInstance from "@/lib/axiosinstance";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 
-const plans = [
-    {
-        name: "Free",
-        price: 0,
-        questions: 1,
-        features: ["1 Question per day", "Standard Support", "Community Access"],
-        color: "bg-gray-100",
-        icon: <Zap className="w-6 h-6 text-gray-500" />,
-    },
-    {
-        name: "Bronze",
-        price: 100,
-        questions: 5,
-        features: ["5 Questions per day", "Bronze Badge", "Email Support"],
-        color: "bg-orange-50",
-        buttonColor: "bg-orange-600 hover:bg-orange-700",
-        icon: <Star className="w-6 h-6 text-orange-600" />,
-        popular: false,
-    },
-    {
-        name: "Silver",
-        price: 300,
-        questions: 10,
-        features: ["10 Questions per day", "Silver Badge", "Priority Support", "No Ads"],
-        color: "bg-blue-50",
-        buttonColor: "bg-blue-600 hover:bg-blue-700",
-        icon: <Shield className="w-6 h-6 text-blue-600" />,
-        popular: true,
-    },
-    {
-        name: "Gold",
-        price: 1000,
-        questions: "Unlimited",
-        features: ["Unlimited Questions", "Gold Badge", "24/7 Support", "Personal Mentor"],
-        color: "bg-yellow-50",
-        buttonColor: "bg-yellow-600 hover:bg-yellow-700",
-        icon: <Star className="w-6 h-6 text-yellow-600" />,
-        popular: false,
-    },
-];
+
 
 import { useTranslation } from "react-i18next";
 
