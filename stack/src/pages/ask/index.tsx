@@ -13,6 +13,13 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
+const FAMOUS_TAGS = [
+  "javascript", "react", "nextjs", "html", "css", 
+  "typescript", "node.js", "mongodb", "python", "java", 
+  "c++", "git", "sql", "docker", "aws", "tailwind", 
+  "angular", "vue"
+];
+
 const index = () => {
   const { t } = useTranslation();
   const [hasMounted, setHasMounted] = useState(false);
@@ -24,6 +31,15 @@ const index = () => {
     tags: [] as string[],
   });
   const [newTag, setNewTag] = useState("");
+
+  const suggestedTags = newTag.trim()
+    ? FAMOUS_TAGS.filter(
+        (tag) =>
+          tag.toLowerCase().includes(newTag.trim().toLowerCase()) &&
+          !formData.tags.includes(tag)
+      )
+    : [];
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
@@ -179,19 +195,73 @@ const index = () => {
                 <p className="text-sm text-gray-600 mb-2">
                   {hasMounted ? t("tagsInputDesc") : "Add at least 1 tag (up to 5) to describe what your question is about."}
                 </p>
-                <div className="flex gap-2">
-                  <Input
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="e.g. javascript react nextjs"
-                    className="w-full"
-                  />
+                {/* Popular Tags Quick-add */}
+                <div className="flex flex-wrap gap-1.5 mb-2.5 items-center">
+                  <span className="text-xs text-gray-500 font-semibold mr-1">Popular:</span>
+                  {FAMOUS_TAGS.slice(0, 8).map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      disabled={formData.tags.includes(tag)}
+                      onClick={() => {
+                        if (formData.tags.length >= 5) {
+                          toast.error("You can add up to 5 tags.");
+                          return;
+                        }
+                        if (!formData.tags.includes(tag)) {
+                          setFormData({ ...formData, tags: [...formData.tags, tag] });
+                        }
+                      }}
+                      className={`text-xs px-2 py-0.5 rounded-full border font-medium transition ${
+                        formData.tags.includes(tag)
+                          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                          : "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 active:scale-95"
+                      }`}
+                    >
+                      +{tag}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-2 relative">
+                  <div className="w-full relative">
+                    <Input
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      placeholder="e.g. javascript react nextjs"
+                      className="w-full"
+                    />
+                    {/* Suggestions Dropdown */}
+                    {newTag.trim() && suggestedTags.length > 0 && (
+                      <div className="absolute left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto divide-y divide-gray-50">
+                        {suggestedTags.map(tag => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              if (formData.tags.length >= 5) {
+                                toast.error("You can add up to 5 tags.");
+                                return;
+                              }
+                              if (!formData.tags.includes(tag)) {
+                                setFormData({ ...formData, tags: [...formData.tags, tag] });
+                              }
+                              setNewTag("");
+                            }}
+                            className="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-sm text-gray-700 font-semibold transition-colors"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <Button
                     onClick={handleAddTag}
                     variant="outline"
                     size="sm"
                     type="button"
-                    className="bg-orange-600 text-white"
+                    className="bg-orange-600 text-white flex-shrink-0"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>

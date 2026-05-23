@@ -186,6 +186,20 @@ const index = () => {
     });
   };
 
+  const getTopTags = () => {
+    const counts: Record<string, number> = {};
+    (userQuestions || []).forEach((q) => {
+      if (q.questiontags && Array.isArray(q.questiontags)) {
+        q.questiontags.forEach((tag: string) => {
+          counts[tag] = (counts[tag] || 0) + 1;
+        });
+      }
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag, count]) => ({ tag, count }));
+  };
+
   const currentUserId = user?._id;
   const isOwnProfile = id === currentUserId;
   return (
@@ -658,21 +672,28 @@ const index = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {users.tags.map((tag: string) => (
-                    <div
-                      key={tag}
-                      className="flex items-center justify-between"
-                    >
-                      <div>
-                        <Badge
-                          variant="secondary"
-                          className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
-                        >
-                          {tag}
-                        </Badge>
+                  {getTopTags().length === 0 ? (
+                    <p className="text-gray-500 italic text-sm">No tags used yet.</p>
+                  ) : (
+                    getTopTags().map(({ tag, count }) => (
+                      <div
+                        key={tag}
+                        className="flex items-center justify-between"
+                      >
+                        <div>
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
+                          >
+                            {tag}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-gray-500 font-medium">
+                          {count} {count === 1 ? "post" : "posts"}
+                        </span>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
